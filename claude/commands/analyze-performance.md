@@ -1,4 +1,4 @@
-# Performance Audit Command
+# analyze-performance v0.2
 
 **Mindset**: "Where are the bottlenecks?" - Combine static analysis with live performance monitoring.
 

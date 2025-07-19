@@ -94,3 +94,4 @@ yarn-error.log*
 # Test directories
 /tmp/test-*
 test_codebase/.claude/
+/todos/worktrees/

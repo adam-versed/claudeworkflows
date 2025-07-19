@@ -1,4 +1,4 @@
-# Plan Refactor Command
+# plan-refactor v0.2
 
 **Mindset**: "Improve without breaking" - Strategic technical debt reduction and modernization planning with extensive code analysis and automated safety nets.
 
@@ -152,7 +152,7 @@ python [SCRIPT_PATH]/performance_baseline.py . --output-format json
 Are you satisfied with this refactoring plan and ready to proceed? If yes, I'll transfer the implementation tasks to your project's todo.md file for tracking."
 
 **If user confirms:**
-1. Check if `./docs/todo.md` exists
+1. Check if `./todos/todos.md` exists
 2. If it exists, append the refactoring tasks from the plan
 3. If it doesn't exist, create it with the refactoring tasks
 4. Format tasks as actionable items with clear phases and milestones

@@ -1,4 +1,4 @@
-# Security Review Command
+# analyze-security v0.2
 
 **Mindset**: "What could go wrong?" - Combine automated scanning with contextual threat assessment.
 
