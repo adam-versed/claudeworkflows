@@ -1,4 +1,4 @@
-# Fix Bug Command
+# fix-bug v0.2
 
 **Mindset**: "Fix it right, keep it working" - Preserve existing functionality while eliminating defects.
 
