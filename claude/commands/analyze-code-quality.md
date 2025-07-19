@@ -1,4 +1,4 @@
-# Analyze Code Quality Command
+# analyze-code-quality v0.2
 
 **Mindset**: "Quality first" - Systematic code quality assessment with measurable metrics and improvement recommendations.
 

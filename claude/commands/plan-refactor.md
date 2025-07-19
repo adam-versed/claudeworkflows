@@ -1,4 +1,4 @@
-# Plan Refactor Command
+# plan-refactor v0.2
 
 **Mindset**: "Improve without breaking" - Strategic technical debt reduction and modernization planning with extensive code analysis and automated safety nets.
 

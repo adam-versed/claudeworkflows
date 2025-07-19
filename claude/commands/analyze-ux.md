@@ -1,4 +1,4 @@
-# Analyze UX Command
+# analyze-ux v0.2
 
 **Mindset**: "User-centered analysis" - User experience evaluation focusing on usability, accessibility, and user journey optimization.
 

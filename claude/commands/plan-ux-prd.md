@@ -1,4 +1,4 @@
-# UX/UI-Focused Product Requirements Document Generator
+# plan-ux-prd v0.2
 
 ## Role and Purpose
 
