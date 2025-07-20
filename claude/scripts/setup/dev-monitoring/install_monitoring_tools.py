@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cross-platform monitoring tool installer.
+Cross-platform monitoring tool installer with integrated dependency checking.
 Installs monitoring dependencies based on detected project types and platform.
 """
 
@@ -20,6 +20,62 @@ def run_command(cmd, shell=False):
         return result.returncode == 0, result.stdout, result.stderr
     except Exception as e:
         return False, "", str(e)
+
+def check_prerequisites():
+    """Check for required prerequisites that must be pre-installed."""
+    print("Checking prerequisites...")
+    missing = []
+    
+    # Check for any available Python 3.x version
+    python_found = False
+    python_cmd = None
+    for cmd in ['python', 'python3', 'py']:
+        try:
+            result = subprocess.run([cmd, '--version'], capture_output=True, text=True)
+            if result.returncode == 0 and 'Python 3.' in result.stdout:
+                python_found = True
+                python_cmd = cmd
+                print(f"  ✓ Python found: {result.stdout.strip()} (command: {cmd})")
+                break
+        except:
+            continue
+    
+    if not python_found:
+        print("  ✗ Python 3.x not found")
+        missing.append("python3")
+    
+    # Check for git
+    git_found, _, _ = run_command(['git', '--version'])
+    if git_found:
+        print("  ✓ Git found")
+    else:
+        print("  ✗ Git not found")
+        missing.append("git")
+    
+    # Check for Node.js (optional for Node.js projects)
+    node_found, node_out, _ = run_command(['node', '--version'])
+    if node_found:
+        print(f"  ✓ Node.js found: {node_out.strip()}")
+    else:
+        print("  ! Node.js not found (required only for Node.js projects)")
+    
+    if missing:
+        print(f"\nMissing prerequisites: {', '.join(missing)}")
+        print("Please install these before running the monitoring tools installer.")
+        return False
+    
+    print("✓ All prerequisites satisfied\n")
+    return True
+
+def check_tool_availability(tool_name):
+    """Check if a tool is already installed."""
+    if platform.system().lower() == "windows":
+        cmd = ["where", tool_name]
+        success, _, _ = run_command(cmd, shell=True)
+    else:
+        cmd = ["which", tool_name]
+        success, _, _ = run_command(cmd)
+    return success
 
 def detect_platform():
     """Detect platform and package manager."""
@@ -43,32 +99,42 @@ def install_base_monitoring_tools(platform_name, package_manager):
     """Install base monitoring tools regardless of project type."""
     tools = {
         "brew": {
+            "make": "make",
             "watchexec": "watchexec",
             "htop": "htop", 
             "jq": "jq",
             "curl": "curl"
         },
         "apt": {
+            "make": "build-essential",
             "watchexec": "watchexec",
             "htop": "htop",
             "jq": "jq", 
             "curl": "curl"
         },
         "dnf": {
+            "make": "make",
+            "watchexec": "watchexec",
             "htop": "htop",
             "jq": "jq",
             "curl": "curl"
         },
         "yum": {
+            "make": "make",
+            "watchexec": "watchexec", 
             "htop": "htop",
             "jq": "jq",
             "curl": "curl"
         },
         "winget": {
+            "make": "GnuWin32.Make",
+            "watchexec": "watchexec",
             "jq": "jq",
             "curl": "curl"
         },
         "choco": {
+            "make": "make",
+            "watchexec": "watchexec",
             "jq": "jq",
             "curl": "curl"
         }
@@ -78,11 +144,21 @@ def install_base_monitoring_tools(platform_name, package_manager):
     results = {}
     
     for tool, package in pm_tools.items():
+        # Check if tool is already installed
+        if check_tool_availability(tool):
+            print(f"  ✓ {tool} already installed")
+            results[tool] = {"success": True, "stdout": "Already installed", "stderr": ""}
+            continue
+        
         print(f"Installing {tool}...")
         
         if package_manager == "brew":
             success, stdout, stderr = run_command(["brew", "install", package])
         elif package_manager == "apt":
+            # Update package list first for apt
+            if tool == list(pm_tools.keys())[0]:  # Only update once at the beginning
+                print("  Updating package list...")
+                run_command(["sudo", "apt", "update"])
             success, stdout, stderr = run_command(["sudo", "apt", "install", "-y", package])
         elif package_manager in ["dnf", "yum"]:
             success, stdout, stderr = run_command(["sudo", package_manager, "install", "-y", package])
@@ -233,6 +309,10 @@ def main():
                        help="Show what would be installed without installing")
     
     args = parser.parse_args()
+    
+    # Check prerequisites first
+    if not check_prerequisites():
+        return 1
     
     # Detect platform and package manager
     platform_name, package_manager = detect_platform()

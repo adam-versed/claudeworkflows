@@ -1,4 +1,4 @@
-# setup-dev-monitoring v0.2
+# setup-dev-monitoring v0.3
 
 **Purpose**: Establish comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
 
@@ -16,18 +16,22 @@
    - **Framework detection**: Next.js (`next dev`), Convex (`npx convex dev`), etc.
    - **Port configuration**: Extract PORT settings from package.json or framework defaults
 4. **CRITICAL**: Never use placeholder commands like `echo "No start command defined"` - always find actual runnable commands
-5. Document component structure with proposed log labels AND verified start commands
+5. **MANDATORY VALIDATION**: Before proceeding to file generation, ensure ALL components have valid start_command values:
+   - Each component MUST have real commands like `npm run dev`, `npx convex dev`, `python manage.py runserver`
+   - NO placeholder text, empty strings, or default values allowed
+   - Makefile generation will FAIL if any component lacks a proper start command
+6. Document component structure with proposed log labels AND verified start commands
 
 ## Phase 2: Watch Pattern Analysis
 
 1. Determine file watching requirements based on discovered technologies:
    - **Native hot-reload**: Next.js, Vite, Create React App (no additional watching needed)
    - **Requires watching**: Static sites, custom builds, non-framework projects
-   - **EXCLUDE from watching**: Documentation files (*.md), log files (*.log), config files
+   - **EXCLUDE from watching**: Documentation files (_.md), log files (_.log), config files
    - **Watch patterns**: Only source code - `src/**/*.{ts,tsx,js,jsx}`, `**/*.py`, `**/*.go`, etc.
 2. **Default approach**: Allow projects with NO custom watch requirements - framework hot-reload is sufficient
 3. Identify technologies that handle their own file watching vs. those needing external tools
-3. **STOP** → "Component analysis complete. Proceed with setup? (y/n)"
+4. **STOP** → "Component analysis complete. Proceed with setup? (y/n)"
 
 ## Phase 3: System Dependencies Check and Install
 
@@ -46,6 +50,28 @@ python [resolved_path]/check_system_dependencies.py --monitoring --json
    - Use dependency script's built-in installation commands: `python [resolved_path]/check_system_dependencies.py --monitoring --install-commands`
 5. **STOP** → "Install missing dependencies: [list only missing tools]? (y/n)"
 6. If approved, execute only the installation commands for missing tools
+
+## Phase 3.5: Existing File Handling
+
+1. Check for existing Procfile and Makefile in current directory:
+   ```bash
+   if [ -f "Procfile" ] || [ -f "Makefile" ]; then
+       echo "Existing files found:"
+       [ -f "Procfile" ] && echo "  - Procfile"
+       [ -f "Makefile" ] && echo "  - Makefile"
+   fi
+   ```
+2. If existing files found:
+   - **STOP** → "Existing Procfile/Makefile found. Choose action: (b)ackup existing files, (o)verwrite, or (c)ancel?"
+   - If backup chosen: Create timestamped backups before proceeding
+     ```bash
+     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+     [ -f "Procfile" ] && cp Procfile "Procfile.backup.$TIMESTAMP"
+     [ -f "Makefile" ] && cp Makefile "Makefile.backup.$TIMESTAMP"
+     ```
+   - If overwrite chosen: Continue to next phase
+   - If cancel chosen: Exit workflow
+3. If no existing files: Continue to next phase
 
 ## Phase 4: Makefile Generation
 
@@ -100,10 +126,10 @@ python [resolved_path]/update_claude_md.py \
 
 ## Phase 6: Validation and Testing
 
-1. **CRITICAL VALIDATION** - Check generated Procfile contains real commands:
-   - NO `echo "No start command defined"` placeholders allowed
-   - All services must have actual runnable commands (npm run dev, npx convex dev, etc.)
-   - Log paths must use `./dev.log` NOT `/dev.log` (read-only filesystem)
+1. **CRITICAL VALIDATION** - Check generated files contain real commands:
+   - **Makefile**: NO `echo "No start command defined"` placeholders allowed - must use actual start commands from component analysis
+   - **Procfile**: All services must have actual runnable commands (npm run dev, npx convex dev, etc.)
+   - **Log paths**: Must use `./dev.log` NOT `/dev.log` (read-only filesystem) in both Makefile and Procfile
    - All services must include proper logging pipeline with timestamps
 2. Validate other files:
    - Makefile syntax check

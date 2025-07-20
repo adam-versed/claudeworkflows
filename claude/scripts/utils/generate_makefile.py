@@ -59,16 +59,23 @@ def generate_dev_target(components_info):
 dev:
 \t@echo "Starting development services..."
 \t@echo "Clearing previous logs..."
-\t@rm -f dev.log
-\t@touch dev.log
+\t@rm -f ./dev.log
+\t@touch ./dev.log
 """
     
     for component in components_info:
         name = component.get('name')
         label = component.get('label', name.upper())
-        start_command = component.get('start_command', 'echo "No start command defined"')
+        start_command = component.get('start_command')
         cwd = component.get('cwd', '.')
         port = component.get('port')
+        
+        # Validate start command - refuse to generate placeholder commands
+        if not start_command or start_command.strip() == '' or 'No start command defined' in start_command:
+            print(f"ERROR: Component '{name}' has no valid start command. Received: '{start_command}'")
+            print(f"Makefile generation requires actual start commands for all components.")
+            print(f"Please ensure component analysis populates 'start_command' field with real commands like 'npm run dev'")
+            sys.exit(1)
         
         # Add port environment variable if specified
         env_vars = []
@@ -82,7 +89,7 @@ dev:
 \t@cd {cwd} && {env_prefix}{start_command} 2>&1 | \\
 \t\twhile IFS= read -r line; do \\
 \t\t\techo "[$(date '+%H:%M:%S')] [{label}] $$line"; \\
-\t\tdone | tee -a $(pwd)/dev.log &"""
+\t\tdone | tee -a ./dev.log &"""
     
     content += """
 \t@echo "All services started. Use 'make tail-logs' to monitor output."
@@ -179,11 +186,11 @@ def generate_log_targets(components_info):
 
 logs:
 \t@echo "=== Recent Logs ==="
-\t@if [ -f "dev.log" ]; then tail -100 dev.log; else echo "No dev.log found"; fi
+\t@if [ -f "./dev.log" ]; then tail -100 ./dev.log; else echo "No ./dev.log found"; fi
 
 tail-logs:
 \t@echo "=== Following Logs (Ctrl+C to exit) ==="
-\t@if [ -f "dev.log" ]; then tail -f dev.log; else echo "No dev.log found. Start services first."; fi
+\t@if [ -f "./dev.log" ]; then tail -f ./dev.log; else echo "No ./dev.log found. Start services first."; fi
 """
     
     # Add component-specific log targets
@@ -194,7 +201,7 @@ tail-logs:
         content += f"""
 {name}-logs:
 \t@echo "=== {label} Logs ==="
-\t@if [ -f "dev.log" ]; then grep "\\[{label}\\]" dev.log | tail -50; else echo "No dev.log found"; fi
+\t@if [ -f "./dev.log" ]; then grep "\\[{label}\\]" ./dev.log | tail -50; else echo "No ./dev.log found"; fi
 """
     
     return content
@@ -252,7 +259,7 @@ monitor:
 
 clean:
 \t@echo "Cleaning logs and temporary files..."
-\t@rm -f dev.log *.pid
+\t@rm -f ./dev.log *.pid
 \t@echo "Clean complete"
 """
 
