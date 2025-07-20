@@ -406,39 +406,31 @@ copy_files() {
         # Update workflows only: update built-in commands and scripts, preserve custom commands and everything else
         log "Updating workflows only: built-in commands and scripts directories..."
         
-        # Preserve custom commands, update built-in commands
+        # Update built-in commands while preserving custom commands
         if [[ -d "$source_dir/claude/commands" ]]; then
             log "  Updating commands directory (preserving custom commands)..."
             local custom_commands=()
             
-            # Identify custom commands
+            # Identify existing custom commands
             if [[ -d "$INSTALL_DIR/commands" ]]; then
                 for cmd in "$INSTALL_DIR/commands"/*; do
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
                         if ! [[ -f "$source_dir/claude/commands/$cmd_name" ]]; then
                             custom_commands+=("$cmd_name")
-                            # Backup custom command temporarily
-                            cp "$cmd" "$cmd.custom_backup"
                         fi
                     fi
                 done
             fi
             
-            # Replace commands directory with new version
-            rm -rf "$INSTALL_DIR/commands"
-            cp -r "$source_dir/claude/commands" "$INSTALL_DIR/"
+            # Create commands directory if it doesn't exist
+            mkdir -p "$INSTALL_DIR/commands"
             
-            # Restore custom commands
+            # Copy/overwrite built-in commands (this preserves any custom commands not in source)
+            cp "$source_dir/claude/commands"/* "$INSTALL_DIR/commands/"
+            
+            # Report preserved custom commands
             if [[ ${#custom_commands[@]} -gt 0 ]]; then
-                for cmd in "${custom_commands[@]}"; do
-                    if [[ -f "$INSTALL_DIR/commands/$cmd.custom_backup" ]]; then
-                        mv "$INSTALL_DIR/commands/$cmd.custom_backup" "$INSTALL_DIR/commands/$cmd"
-                        log_verbose "    Restored custom command: $cmd"
-                    fi
-                done
-                
-                # Report preserved custom commands
                 echo "    Preserved custom commands:"
                 for cmd in "${custom_commands[@]}"; do
                     echo "      - $cmd"
