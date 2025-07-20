@@ -1,115 +1,86 @@
-# plan-refactor v0.2
+# plan-refactor v0.3
 
-**Mindset**: "Improve without breaking" - Strategic technical debt reduction and modernization planning with extensive code analysis and automated safety nets.
+**Mindset**: "Improve without breaking" - Strategic technical debt reduction and modernization planning through automated analysis, proven patterns, and comprehensive testing frameworks.
 
-## Behavior
+## Workflow Process
 
-Comprehensive refactoring strategy combining automated code analysis, proven migration patterns, and detailed testing plans to ensure safe technical debt reduction and modernization without functionality loss.
+### Phase 1: Technical Debt Assessment
 
-### Automated Analysis Integration
+1. **Execute automated analysis** - Run comprehensive technical debt assessment
 
-Execute comprehensive code analysis using existing automation scripts for token-efficient technical debt identification:
+   ```bash
+   # Note: LLM must locate script installation directory dynamically using Glob tool
+   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
+   python [SCRIPT_PATH]/run_all_analysis.py . --output-format json
+   python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
+   python [SCRIPT_PATH]/coupling_analysis.py . --output-format json
+   python [SCRIPT_PATH]/check_bottlenecks.py . --output-format json
+   ```
 
-**Note**: LLM must locate the script installation directory dynamically using Glob tool to find script paths, then execute with correct absolute paths.
+2. **Identify refactoring priorities** - Analyze complexity hotspots and architectural debt
 
-```bash
-# Example execution format (LLM will determine actual paths):
-python [SCRIPT_PATH]/run_all_analysis.py . --output-format json
-python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
-python [SCRIPT_PATH]/coupling_analysis.py . --output-format json
-python [SCRIPT_PATH]/check_bottlenecks.py . --output-format json
-```
+   - Cross-reference security vulnerabilities with refactoring scope
 
-**Script Location Process:**
-1. Use Glob tool to find script paths: `**/scripts/*.py` and `**/scripts/analyze/*/*.py`
-2. Verify script availability and determine correct absolute paths
-3. Execute scripts with resolved paths
+3. **Generate technical debt report** - Compile results into executive summary
+   - Define migration scope with clear boundaries and dependencies
 
-**Analysis Integration:**
-- Execute pre-analysis to identify technical debt hotspots and refactoring candidates
-- Generate automated reports with complexity metrics and architectural debt assessment
-- Identify performance bottlenecks and optimization opportunities through script automation
-- Use existing security analysis for vulnerability remediation planning
-- Token-efficient analysis execution with summary modes and focused reporting
+**STOP** → "Technical debt analysis complete. Proceed with strategy development? (y/n)"
 
-## Refactoring Framework (Analysis 35% | Strategy 25% | Implementation 25% | Validation 15%)
+### Phase 2: Migration Strategy Development
 
-### Phase 1: Extensive Code Analysis
+1. **Research proven refactoring patterns** - Use Context7 for industry-proven strategies
 
-**Automated Technical Debt Assessment:**
-- **Complexity Hotspots**: Execute complexity_metrics.py to identify high-complexity modules requiring refactoring
-- **Architectural Debt**: Run coupling_analysis.py to find tight coupling and structural improvement opportunities
-- **Performance Debt**: Use check_bottlenecks.py and profile_database.py to identify optimization targets
-- **Security Debt**: Execute security analysis scripts for vulnerability remediation prioritization
-- **Code Quality Issues**: Automated detection of code smells, dead code, and maintainability problems
+   - Identify patterns: Strangler Fig, Module Federation, Blue-Green deployment
 
-**Migration Area Identification:**
-- Automated analysis of user-requested migration areas (legacy frameworks, outdated patterns, performance issues)
-- Cross-reference user requirements with automated analysis findings
-- Prioritize refactoring candidates based on impact, effort, and risk assessment
-- Generate migration scope definition with clear boundaries and dependencies
+2. **Create phased migration plan** - Design incremental strategy with minimal risk
 
-### Phase 2: Context7-Enhanced Migration Strategy
+   - Define feature flag integration for safe deployment
 
-**Proven Pattern Integration:**
-Use Context7 to research and implement industry-proven refactoring patterns:
+3. **Define rollback procedures** - Establish automated rollback mechanisms
+   - Create safety nets and monitoring for each migration phase
 
-```
---c7 queries for migration patterns:
-- Strangler Fig Pattern for legacy system migration
-- Module Federation for monolith decomposition
-- Database migration strategies (blue-green, shadow mode)
-- Framework migration patterns (React class→hooks, Angular upgrade paths)
-- Microservices extraction patterns
-- API versioning and backward compatibility strategies
-```
+**STOP** → "Migration strategy defined. Ready to create implementation plan? (y/n)"
 
-**Technology-Specific Best Practices:**
-- Research current best practices for target technology stack
-- Validate migration approach against industry standards and case studies
-- Incorporate lessons learned from similar refactoring projects
-- Identify potential pitfalls and proven mitigation strategies
+### Phase 3: Implementation Planning
 
-### Phase 3: Implementation Strategy
+1. **Generate detailed task breakdown** - Create implementation timeline with checkpoints
 
-**Phased Migration Planning:**
-- **Phase Breakdown**: Incremental refactoring strategy with minimal risk phases
-- **Dependency Management**: Automated dependency analysis and migration sequencing
-- **Feature Flag Integration**: Safe deployment strategy with rollback capabilities
-- **Parallel Development**: Strategy for maintaining development velocity during refactoring
+   - Plan integration testing at each migration phase
 
-**Change Management Strategy:**
-- Version control strategy for large refactoring efforts
-- Code review checkpoints and quality gates
-- Integration testing at each migration phase
-- Documentation updates and knowledge transfer planning
+2. **Create testing strategy** - Establish baselines and regression coverage
 
-### Phase 4: Comprehensive Testing Strategy
+   ```bash
+   # Note: LLM must locate script installation directory dynamically using Glob tool
+   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
+   python [SCRIPT_PATH]/test_coverage_analysis.py . --output-format json
+   ```
 
-**Automated Testing Plan:**
-```bash
-# Example execution format (LLM will determine actual paths):
-python [SCRIPT_PATH]/test_coverage_analysis.py . --output-format json
-python [SCRIPT_PATH]/performance_baseline.py . --output-format json
-```
+3. **Define success metrics** - Set measurable complexity and performance targets
+   - Create development velocity impact assessment framework
 
-**Testing Framework:**
-- **Baseline Establishment**: Automated performance and functionality baselines before refactoring
-- **Regression Test Planning**: Identify critical features and functions requiring regression test coverage
-- **Integration Testing**: API contract validation and system integration verification
-- **Performance Testing**: Before/after performance comparison with automated benchmarking
-- **Rollback Testing**: Automated rollback procedure validation and safety net verification
+### Phase 4: Quality Validation and Task Transfer
 
-**Quality Assurance Strategy:**
-- Automated code quality validation at each migration phase
-- Performance regression detection and alerting
-- Functional parity verification through automated testing
-- User acceptance testing strategy for critical business functions
-- **Regression Test Coverage Planning**: Identify and document critical features requiring regression test coverage based on refactoring scope
+1. **Validate plan completeness** - Verify approaches and rollback procedures
+
+   - Ensure success metrics are measurable and achievable
+
+2. **Quality Gates Validation**
+
+   - [ ] Technical debt hotspots identified and prioritized
+   - [ ] Migration strategy validated against proven patterns
+   - [ ] Implementation phases include comprehensive rollback procedures
+   - [ ] Testing strategy covers regression prevention and performance validation
+   - [ ] All refactoring targets have defined success metrics
+
+3. **Transfer tasks to todos.md** - Generate actionable implementation tasks
+   - Append formatted tasks with clear phases to todos.md
+
+**STOP** → "Implementation plan complete and validated. Transfer to todos.md? (y/n)"
 
 ## Enhanced Optional Flags
 
-**--c7**: Research proven refactoring patterns and migration strategies for your specific technical debt:
+**--c7**: Research proven refactoring patterns and migration strategies:
+
 - Legacy system modernization (strangler fig, anti-corruption layer)
 - Framework migrations (React, Angular, Vue upgrade paths)
 - Database refactoring (schema evolution, data migration)
@@ -117,91 +88,22 @@ python [SCRIPT_PATH]/performance_baseline.py . --output-format json
 - Performance optimization (caching strategies, query optimization)
 
 **--seq**: Structure complex refactoring into manageable phases:
+
 - Phase 1: 'Execute automated analysis and identify technical debt hotspots'
 - Phase 2: 'Research migration patterns and create strategy with Context7'
 - Phase 3: 'Plan implementation phases with safety nets and rollback procedures'
 - Phase 4: 'Generate comprehensive testing strategy and validation framework'
-- Phase 5: 'Create monitoring and success metrics for refactoring impact'
 
-## Automation Integration
+## Task Format for todos.md Transfer
 
-**Existing Script Leverage:**
-- Use run_all_analysis.py for comprehensive pre-refactoring assessment
-- Integrate complexity_metrics.py findings into refactoring prioritization
-- Leverage security analysis for vulnerability remediation planning
-- Use performance analysis scripts for optimization target identification
-
-**Token Cost Reduction:**
-- Pre-computed analysis summaries instead of manual code review
-- Automated report generation with executive summaries
-- Script-based technical debt quantification and prioritization
-- Automated dependency and impact analysis
-
-## Task List Transfer
-
-**Final Step:** After completing the refactoring strategy, present the comprehensive plan to the user:
-
-"**Refactoring Plan Summary:**
-- **Technical Debt Identified**: [Automated analysis summary]
-- **Migration Strategy**: [Context7-informed approach]
-- **Implementation Phases**: [Detailed timeline with milestones]
-- **Testing Strategy**: [Comprehensive validation plan]
-- **Regression Test Requirements**: [Critical features needing regression test coverage]
-- **Risk Mitigation**: [Safety nets and rollback procedures]
-
-Are you satisfied with this refactoring plan and ready to proceed? If yes, I'll transfer the implementation tasks to your project's todo.md file for tracking."
-
-**If user confirms:**
-1. Check if `./todos/todos.md` exists
-2. If it exists, append the refactoring tasks from the plan
-3. If it doesn't exist, create it with the refactoring tasks
-4. Format tasks as actionable items with clear phases and milestones
-5. Confirm to user that tasks have been added to todo.md
-
-**Task Format Example:**
 ```markdown
-## [System/Component] Refactoring Tasks
+## [System/Component] Refactoring Implementation
 
-### Phase 1: Pre-refactoring Preparation
-- [ ] Create comprehensive test baseline for affected areas
-- [ ] Document current system behavior and dependencies
-- [ ] Set up feature flags for gradual rollout
-- [ ] Establish performance benchmarks
+### Phase [PHASE-NUMBER]: [PHASE-TITLE]
 
-### Phase 2: Core Refactoring
-- [ ] Refactor [high-priority component] using [pattern]
-- [ ] Migrate [legacy system] to [modern approach]
-- [ ] Update [database/API] following migration strategy
-- [ ] Implement rollback procedures
-
-### Phase 3: Validation & Optimization
-- [ ] Run full regression test suite
-- [ ] Validate performance improvements
-- [ ] Complete security vulnerability remediation
-- [ ] Update documentation and knowledge base
+- [ ] [PHASE-TASK]
+- [ ] [PHASE-TASK]
+- [ ] [PHASE-TASK]
 ```
-
-## Output Requirements
-
-- **Automated Technical Debt Assessment**: Script-generated analysis with complexity metrics and architectural debt
-- **Context7-Enhanced Migration Strategy**: Research-backed refactoring approach with proven patterns
-- **Comprehensive Testing Plan**: Automated test generation with regression prevention and performance validation
-- **Implementation Roadmap**: Phased approach with safety nets, rollback procedures, and success metrics
-- **Todo.md Integration**: Approved plans automatically transferred to actionable task tracking
-
-## Validation Framework
-
-**Success Metrics:**
-- Code complexity reduction (measurable through automated metrics)
-- Performance improvement validation (before/after benchmarking)
-- Security vulnerability remediation (automated security scan comparison)
-- Test coverage maintenance or improvement
-- Development velocity impact assessment
-
-**Safety Measures:**
-- Automated rollback procedures for each migration phase
-- Feature flag integration for gradual rollout
-- Performance monitoring and alerting
-- Functionality parity verification through comprehensive testing
 
 $ARGUMENTS

@@ -37,6 +37,7 @@ Please provide your technical challenge and any relevant constraints, or confirm
 
    ```bash
    # Find scripts dynamically
+   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
    glob **/scripts/analyze/architecture/*.py
    python [SCRIPT_PATH]/pattern_evaluation.py .
    python [SCRIPT_PATH]/scalability_check.py .
