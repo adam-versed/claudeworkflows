@@ -10,45 +10,46 @@
    - **Backend examples**: Express API → API, Convex database → BACKEND, FastAPI → SERVER
    - **Services examples**: Redis → CACHE, PostgreSQL → DB, Worker processes → WORKER
    - **Build tools**: Webpack → BUILD, Vite → DEV, TypeScript → COMPILE
-3. Identify each component's:
-   - Entry point and start command
-   - Port/endpoint if applicable
-   - Technology stack and framework
-   - Development vs production behavior
-4. Document component structure with proposed log labels
+3. Identify each component's ACTUAL start commands by examining:
+   - **package.json scripts**: `"dev"`, `"start"`, `"serve"` commands
+   - **Directory structure**: Look for `cd apps/web && npm run dev` patterns
+   - **Framework detection**: Next.js (`next dev`), Convex (`npx convex dev`), etc.
+   - **Port configuration**: Extract PORT settings from package.json or framework defaults
+4. **CRITICAL**: Never use placeholder commands like `echo "No start command defined"` - always find actual runnable commands
+5. Document component structure with proposed log labels AND verified start commands
 
 ## Phase 2: Watch Pattern Analysis
 
 1. Determine file watching requirements based on discovered technologies:
    - **Native hot-reload**: Next.js, Vite, Create React App (no additional watching needed)
    - **Requires watching**: Static sites, custom builds, non-framework projects
-   - **Watch patterns**: `src/**/*.{ts,tsx,js,jsx}`, `**/*.py`, `**/*.go`, etc.
-2. Identify technologies that handle their own file watching vs. those needing external tools
+   - **EXCLUDE from watching**: Documentation files (*.md), log files (*.log), config files
+   - **Watch patterns**: Only source code - `src/**/*.{ts,tsx,js,jsx}`, `**/*.py`, `**/*.go`, etc.
+2. **Default approach**: Allow projects with NO custom watch requirements - framework hot-reload is sufficient
+3. Identify technologies that handle their own file watching vs. those needing external tools
 3. **STOP** → "Component analysis complete. Proceed with setup? (y/n)"
 
 ## Phase 3: System Dependencies Check and Install
 
-1. Use Glob tool to locate dependency script: `**/scripts/utils/check_system_dependencies.py`
-2. Execute dependency check:
+1. Use Glob tool to locate dependency script in Claude directory: `~/.claude/**/scripts/setup/dev-monitoring/check_system_dependencies.py` OR `**/scripts/setup/dev-monitoring/check_system_dependencies.py`
+2. Execute dependency check to identify what's ALREADY INSTALLED:
 
 ```bash
-python [resolved_path]/check_system_dependencies.py --monitoring --install-commands
+python [resolved_path]/check_system_dependencies.py --monitoring --json
 ```
 
-3. If missing dependencies found, use Glob tool to locate installation script: `**/scripts/utils/install_monitoring_tools.py`
-4. Execute dry-run to preview installation plan:
-
-```bash
-python [resolved_path]/install_monitoring_tools.py --project-type [component_types] --dry-run
-```
-
-5. Present dry-run results showing what would be installed
-6. **STOP** → "Proceed with dependency installation? (y/n)"
-7. If approved, run installation without --dry-run flag
+3. **Parse JSON output** to identify:
+   - Required tools already available (skip these)
+   - Only missing dependencies that need installation
+4. **ONLY if missing dependencies found**, present what needs to be installed:
+   - Show only tools that are actually missing
+   - Use dependency script's built-in installation commands: `python [resolved_path]/check_system_dependencies.py --monitoring --install-commands`
+5. **STOP** → "Install missing dependencies: [list only missing tools]? (y/n)"
+6. If approved, execute only the installation commands for missing tools
 
 ## Phase 4: Makefile Generation
 
-1. Use Glob tool to locate Makefile generation script: `**/scripts/utils/generate_makefile.py`
+1. Use Glob tool to locate Makefile generation script: `~/.claude/**/scripts/utils/generate_makefile.py` OR `**/scripts/utils/generate_makefile.py`
 2. Execute Makefile generation with component analysis:
 
 ```bash
@@ -62,21 +63,27 @@ python [resolved_path]/generate_makefile.py \
 
 ## Phase 5: Procfile Generation
 
-1. Use Glob tool to locate Procfile generation script: `**/scripts/utils/generate_procfile.py`
+1. Use Glob tool to locate Procfile generation script: `~/.claude/**/scripts/utils/generate_procfile.py` OR `**/scripts/utils/generate_procfile.py`
 2. Execute Procfile generation with component details:
 
 ```bash
 python [resolved_path]/generate_procfile.py \
   --components '[component_json]' \
   --log-format unified \
-  --output-dir [current_directory]
+  --output-dir [current_directory] \
+  --force-logging
 ```
 
-3. Review generated service definitions and log formatting
+3. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
+   - Every service MUST pipe output to `./dev.log` with timestamps
+   - Format: `2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [SERVICE] $line"; done | tee -a ./dev.log`
+   - Even services without custom watches must log their output
+   - No service should run without contributing to unified logging
+4. Review generated service definitions and log formatting
 
 ## Phase 6: Project CLAUDE.md Integration
 
-1. Use Glob tool to locate CLAUDE.md update script: `**/scripts/setup/dev-monitoring/update_claude_md.py`
+1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/**/scripts/setup/dev-monitoring/update_claude_md.py` OR `**/scripts/setup/dev-monitoring/update_claude_md.py`
 2. Execute CLAUDE.md update to add development workflow commands:
 
 ```bash
@@ -93,17 +100,20 @@ python [resolved_path]/update_claude_md.py \
 
 ## Phase 6: Validation and Testing
 
-1. Validate generated files:
+1. **CRITICAL VALIDATION** - Check generated Procfile contains real commands:
+   - NO `echo "No start command defined"` placeholders allowed
+   - All services must have actual runnable commands (npm run dev, npx convex dev, etc.)
+   - Log paths must use `./dev.log` NOT `/dev.log` (read-only filesystem)
+   - All services must include proper logging pipeline with timestamps
+2. Validate other files:
    - Makefile syntax check
-   - Procfile service definitions
-   - Log aggregation setup
-   - Health check endpoints
+   - Log aggregation setup works
    - CLAUDE.md exists and contains make commands
-2. Test monitoring infrastructure:
+3. Test monitoring infrastructure:
    - Execute `make status` to verify commands work
-   - Check log file creation capability
-   - Validate component health checks
-3. **STOP** → "Monitoring setup complete. Test successful? (y/n)"
+   - Verify log file creation uses writable path
+   - Test that frontend/backend components can start and log output
+4. **STOP** → "Monitoring setup complete and validated. All services have real start commands? (y/n)"
 
 ## Optional Flags
 

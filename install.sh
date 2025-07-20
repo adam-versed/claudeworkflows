@@ -446,11 +446,47 @@ copy_files() {
             fi
         fi
         
-        # Update scripts directory (no custom preservation needed here)
+        # Update scripts directory (preserve custom scripts)
         if [[ -d "$source_dir/claude/scripts" ]]; then
-            log "  Updating scripts directory..."
+            log "  Updating scripts directory (preserving custom scripts)..."
+            
+            # Backup custom scripts if they exist
+            local custom_scripts=()
+            if [[ -d "$INSTALL_DIR/scripts" ]]; then
+                # Find custom scripts that aren't in our source
+                while IFS= read -r -d '' script_file; do
+                    local rel_path="${script_file#$INSTALL_DIR/scripts/}"
+                    if [[ ! -f "$source_dir/claude/scripts/$rel_path" ]]; then
+                        custom_scripts+=("$rel_path")
+                    fi
+                done < <(find "$INSTALL_DIR/scripts" -type f -print0 2>/dev/null)
+                
+                # Create temp backup of custom scripts
+                if [[ ${#custom_scripts[@]} -gt 0 ]]; then
+                    local temp_backup=$(mktemp -d)
+                    for script in "${custom_scripts[@]}"; do
+                        local script_dir=$(dirname "$temp_backup/$script")
+                        mkdir -p "$script_dir"
+                        cp "$INSTALL_DIR/scripts/$script" "$temp_backup/$script"
+                    done
+                fi
+            fi
+            
+            # Remove and recreate scripts directory
             rm -rf "$INSTALL_DIR/scripts"
             cp -r "$source_dir/claude/scripts" "$INSTALL_DIR/"
+            
+            # Restore custom scripts
+            if [[ ${#custom_scripts[@]} -gt 0 ]]; then
+                echo "    Preserved custom scripts:"
+                for script in "${custom_scripts[@]}"; do
+                    local script_dir=$(dirname "$INSTALL_DIR/scripts/$script")
+                    mkdir -p "$script_dir"
+                    cp "$temp_backup/$script" "$INSTALL_DIR/scripts/$script"
+                    echo "      - $script"
+                done
+                rm -rf "$temp_backup"
+            fi
         fi
         
         echo "  Workflow update complete. Built-in commands and scripts updated, custom commands and other files preserved."
@@ -651,7 +687,10 @@ install_mcp_tools() {
     
     # Install sequential-thinking
     log_verbose "Installing sequential-thinking MCP tool..."
-    if claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking 2>/dev/null; then
+    if claude mcp list 2>/dev/null | grep -q "sequential-thinking"; then
+        log_verbose "sequential-thinking already installed, skipping"
+        update_installation_log "mcp" "sequential-thinking"
+    elif claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking 2>/dev/null; then
         log_verbose "sequential-thinking installed successfully"
         update_installation_log "mcp" "sequential-thinking"
     else
@@ -661,7 +700,10 @@ install_mcp_tools() {
     
     # Install context7
     log_verbose "Installing context7 MCP tool..."
-    if claude mcp add context7 -s user -- npx -y @modelcontextprotocol/server-context7 2>/dev/null; then
+    if claude mcp list 2>/dev/null | grep -q "context7"; then
+        log_verbose "context7 already installed, skipping"
+        update_installation_log "mcp" "context7"
+    elif claude mcp add context7 -s user -- npx -y @modelcontextprotocol/server-context7 2>/dev/null; then
         log_verbose "context7 installed successfully"
         update_installation_log "mcp" "context7"
     else
