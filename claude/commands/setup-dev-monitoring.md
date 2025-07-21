@@ -22,7 +22,32 @@
    - Makefile generation will FAIL if any component lacks a proper start command
 6. Document component structure with proposed log labels AND verified start commands
 
-## Phase 2: Watch Pattern Analysis
+## Phase 2: Component Overlap Detection
+
+1. Use Glob tool to locate overlap detection script: `**/scripts/utils/detect_component_overlaps.py`
+2. Analyze components for overlaps and conflicts by creating JSON of discovered components and running:
+
+```bash
+python [resolved_path]/detect_component_overlaps.py --components '[JSON_COMPONENTS]' --project-path . --json
+```
+
+3. **Parse overlap analysis results**:
+   - **Monorepo detection**: Turborepo, Lerna, Nx, Yarn workspaces, pnpm workspaces
+   - **Command pattern conflicts**: Global orchestrator vs individual component commands
+   - **Port conflicts**: Multiple services trying to use the same port
+   - **Duplication issues**: Same service running through multiple paths
+
+4. **Apply resolution strategy** based on detected overlaps:
+   - **Turborepo projects**: Prefer individual components (`npm run dev` in each directory) over global `turbo run dev`
+   - **Lerna projects**: May prefer global orchestrator if components are interdependent
+   - **Port conflicts**: Adjust port assignments or remove conflicting components
+   - **Remove duplicates**: Keep only the optimal monitoring approach for each service
+
+5. **STOP** → "Overlap analysis complete. Apply recommended resolution? (y/n)"
+   - If overlaps detected, show what will be removed/kept
+   - If no overlaps, proceed without changes
+
+## Phase 3: Watch Pattern Analysis
 
 1. Determine file watching requirements based on discovered technologies:
    - **Native hot-reload**: Next.js, Vite, Create React App (no additional watching needed)
@@ -33,21 +58,24 @@
 3. Identify technologies that handle their own file watching vs. those needing external tools
 4. **STOP** → "Component analysis complete. Proceed with setup? (y/n)"
 
-## Phase 3: System Dependencies Check and Install
+## Phase 7: System Dependencies Check and Install
 
-1. Use Glob tool to locate dependency script in Claude directory: `~/.claude/**/scripts/setup/dev-monitoring/check_system_dependencies.py` OR `**/scripts/setup/dev-monitoring/check_system_dependencies.py`
-2. Execute dependency check to identify what's ALREADY INSTALLED:
+1. Use Glob tool to locate installer script: `**/scripts/setup/dev-monitoring/install_monitoring_tools.py`
+2. Execute dependency check and installation (script includes integrated prerequisite checking):
 
 ```bash
-python [resolved_path]/check_system_dependencies.py --monitoring --json
+python [resolved_path]/install_monitoring_tools.py --dry-run --project-type [detected_types]
 ```
 
-3. **Parse JSON output** to identify:
-   - Required tools already available (skip these)
+3. **Parse dry-run output** to identify:
+   - Prerequisites status (Python, Git, Node.js)
+   - Tools already installed (skip these)  
    - Only missing dependencies that need installation
-4. **ONLY if missing dependencies found**, present what needs to be installed:
-   - Show only tools that are actually missing
-   - Use dependency script's built-in installation commands: `python [resolved_path]/check_system_dependencies.py --monitoring --install-commands`
+4. **ONLY if missing dependencies found**, run actual installation:
+
+```bash
+python [resolved_path]/install_monitoring_tools.py --project-type [detected_types]
+```
 5. **STOP** → "Install missing dependencies: [list only missing tools]? (y/n)"
 6. If approved, execute only the installation commands for missing tools
 
@@ -73,7 +101,7 @@ python [resolved_path]/check_system_dependencies.py --monitoring --json
    - If cancel chosen: Exit workflow
 3. If no existing files: Continue to next phase
 
-## Phase 4: Makefile Generation
+## Phase 7: Makefile Generation
 
 1. Use Glob tool to locate Makefile generation script: `~/.claude/**/scripts/utils/generate_makefile.py` OR `**/scripts/utils/generate_makefile.py`
 2. Execute Makefile generation with component analysis:
@@ -87,7 +115,7 @@ python [resolved_path]/generate_makefile.py \
 
 3. Review generated Makefile targets and safety warnings
 
-## Phase 5: Procfile Generation
+## Phase 7: Procfile Generation
 
 1. Use Glob tool to locate Procfile generation script: `~/.claude/**/scripts/utils/generate_procfile.py` OR `**/scripts/utils/generate_procfile.py`
 2. Execute Procfile generation with component details:
@@ -107,7 +135,7 @@ python [resolved_path]/generate_procfile.py \
    - No service should run without contributing to unified logging
 4. Review generated service definitions and log formatting
 
-## Phase 6: Project CLAUDE.md Integration
+## Phase 7: Project CLAUDE.md Integration
 
 1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/**/scripts/setup/dev-monitoring/update_claude_md.py` OR `**/scripts/setup/dev-monitoring/update_claude_md.py`
 2. Execute CLAUDE.md update to add development workflow commands:
@@ -124,7 +152,7 @@ python [resolved_path]/update_claude_md.py \
    - Include service management restrictions and available commands
    - Document log files and debugging workflow
 
-## Phase 6: Validation and Testing
+## Phase 7: Validation and Testing
 
 1. **CRITICAL VALIDATION** - Check generated files contain real commands:
    - **Makefile**: NO `echo "No start command defined"` placeholders allowed - must use actual start commands from component analysis

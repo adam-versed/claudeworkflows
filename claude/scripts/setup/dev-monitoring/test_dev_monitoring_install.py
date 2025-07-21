@@ -31,7 +31,6 @@ def test_dev_monitoring_install(target_dir):
         "commands/setup-dev-monitoring.md",
         
         # Core dev-monitoring scripts
-        "scripts/setup/dev-monitoring/check_system_dependencies.py",
         "scripts/setup/dev-monitoring/install_monitoring_tools.py",
         
         # Monitoring utility scripts

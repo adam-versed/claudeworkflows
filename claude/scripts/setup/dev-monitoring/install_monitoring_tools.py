@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#install_monitoring_tools.py v0.2
 """
 Cross-platform monitoring tool installer with integrated dependency checking.
 Installs monitoring dependencies based on detected project types and platform.
