@@ -13,10 +13,9 @@
 **What it is:** Claude Code workflows for a lightweight but comprehensive development toolkit including:
 
 - combines the best of LLM and programmitc scripts to reduce context errors, hallucinations and token usage
-- task planning modes ('/plan-solution --tdd'), different modes to create a todos.md (good partnership with @badlogics /todo framework)
-- code analysis modes ('/analyze-security'), programmatic + llm analysis of different codebase factors
-- easy access dev monitoring ('/setup-dev-monitoring'), programmatic setup of time saving dev logging system that enables quick capture of events between your LLM chat(s) and terminal sesion(s)
-
+- task planning modes, good partnership with @badlogics /todo framework
+- code analysis modes, programmatic + llm analysis of different codebase factors
+- easy dev monitoring, time saving dev logging system that enables quick capture of events for your LLM chat(s) to save on copying and pasting all over the place
 **Quick Start:** Run `./install.sh` → Use commands like `/analyze-security`, `/plan-solution --tdd`, `/setup-dev-monitoring` → Get insights instantly.
 
 **Key Features:** [🔍 6 Analysis Commands](#-analysis-commands-6) • [📐 3 Planning Commands](#-plan-commands-3) • [🔧 3 Fix Commands](#-fix-commands-3) • [🔒 OWASP Security Testing](#-security-analysis) • [⚡ 25 Analysis Scripts](#-analysis-scripts-architecture) • [🌐 Multi-Language Support](#-programming-language-support) • [🔧 Development Monitoring](#-development-monitoring)
