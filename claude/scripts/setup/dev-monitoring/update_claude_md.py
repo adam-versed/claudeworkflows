@@ -31,37 +31,48 @@ def get_claude_md_content(components: List[Dict[str, Any]]) -> str:
     content = f"""## Development Workflow Commands (Make-based)
 
 **CRITICAL: Service Management Restrictions**
+
 - **NEVER run `make dev` or `make stop`** - These commands start/stop development services
 - **ALWAYS ask the user** to run these commands manually
-- **Claude can use**: `make tail-log`, `make status`, `make lint`, `make test`, `make format`, `make clean`
+- **Claude can use**: `make tail-logs`, `make logs`, `make status`, `make health`, `make monitor`, `make clean`
 
 ### Available Commands
 
-- `make dev` - **USER ONLY** - Start all development services with auto-reload
-- `make tail-log` - **Claude can use** - Access unified development logs for debugging and context
-- `make status` - **Claude can use** - Check if development services are running
+- `make dev` - **USER ONLY** - Start all development services with shoreman
 - `make stop` - **USER ONLY** - Stop all development services
-- `make lint` - **Claude can use** - Run code quality checks across project
-- `make test` - **Claude can use** - Execute test suites
-- `make format` - **Claude can use** - Format code across all workspaces
-- `make clean` - **Claude can use** - Clean build artifacts and logs
+- `make status` - **Claude can use** - Show service status
+- `make logs` - **Claude can use** - Show aggregated logs (last 100 lines)
+- `make tail-logs` - **Claude can use** - Follow logs in real-time (Ctrl+C to exit)
+- `make health` - **Claude can use** - Check service health
+- `make monitor` - **Claude can use** - Show system monitoring dashboard
+- `make clean` - **Claude can use** - Clean logs and temporary files
 - `make help` - **Claude can use** - Show available commands
+
+### Component-specific Commands
+
+- `make frontend-status` - **Claude can use** - Check FRONTEND status
+- `make frontend-logs` - **Claude can use** - Show FRONTEND logs
+- `make backend-status` - **Claude can use** - Check BACKEND status
+- `make backend-logs` - **Claude can use** - Show BACKEND logs
 
 ### Log Files and Debugging
 
 - **Development logs**: Located at `./dev.log` in project root
 - **Log format**: `[TIMESTAMP] [SERVICE] Message content`
-- **Services**: {services_text}
-- **Access logs**: Use `make tail-log` to read current development activity
+- **Services**: `[FRONTEND]`, `[BACKEND]`
+- **Access logs**: Use `make logs` for recent logs or `make tail-logs` for real-time monitoring
 - **Context gathering**: Logs provide complete context about frontend/backend requests and errors
 
 ### Workflow Integration
 
 When debugging issues or understanding system state:
+
 1. **Check service status**: `make status`
-2. **Read development logs**: `make tail-log` (use Ctrl+C to exit)
-3. **Run quality checks**: `make lint` and `make test`
-4. **Ask user to restart services**: "Please run `make dev` to start/restart development services"
+2. **Read recent logs**: `make logs` (last 100 lines)
+3. **Monitor real-time logs**: `make tail-logs` (use Ctrl+C to exit)
+4. **Check service health**: `make health`
+5. **View system resources**: `make monitor`
+6. **Ask user to restart services**: "Please run `make dev` to start/restart development services"
 
 **Never attempt to start, stop, or restart development services automatically.**"""
     
