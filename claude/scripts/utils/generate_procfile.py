@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#generate_procfile.py v0.3
 """
 Procfile generator for development monitoring.
 Creates Procfile with component-specific service definitions based on LLM analysis.
@@ -20,7 +20,6 @@ def generate_procfile_header(components_info):
 # Usage:
 #   foreman start                    - Start all services
 #   foreman start web                - Start specific service
-#   shoreman Procfile               - Alternative process manager
 #
 # Log Format: [HH:MM:SS] [LABEL] message
 """
@@ -39,14 +38,28 @@ def generate_service_definition(component):
     else:
         command = ""
     
-    # Add port environment variable if specified
+    # Add port configuration if specified
     if port:
-        command += f"PORT={port} "
+        # For Next.js, use both PORT env var and --port flag for reliability
+        if 'next dev' in start_command or 'npm run dev' in start_command:
+            command += f"PORT={port} "
+            # Append port flag to the start command
+            start_command_with_port = f"{start_command} -- --port {port}"
+        else:
+            command += f"PORT={port} "
+            start_command_with_port = start_command
+    else:
+        start_command_with_port = start_command
     
-    # Add the start command with logging pipeline
-    command += f"{start_command} 2>&1 | while IFS= read -r line; do echo \"[$(date '+%H:%M:%S')] [{label}] $line\"; done"
-    
-    return f"{name}: {command}"
+    # Add the start command with logging pipeline (absolute path fix for directory changes)
+    if cwd != '.':
+        # When changing directories, capture absolute log path first
+        full_command = f"LOGFILE=\"$(pwd)/dev.log\" && {command}{start_command_with_port} 2>&1 | while IFS= read -r line; do echo \"[$(date '+%H:%M:%S')] [{label}] $line\"; done | tee -a \"$LOGFILE\""
+        return f"{name}: {full_command}"
+    else:
+        # No directory change, use relative path
+        command += f"{start_command_with_port} 2>&1 | while IFS= read -r line; do echo \"[$(date '+%H:%M:%S')] [{label}] $line\"; done | tee -a ./dev.log"
+        return f"{name}: {command}"
 
 def generate_combined_log_service(components_info):
     """Generate a service that aggregates all logs."""
@@ -143,11 +156,8 @@ def main():
         if watcher_service:
             procfile_lines.append(watcher_service)
     
-    # Add log aggregation service for unified logging
-    if args.log_format == "unified":
-        log_service = generate_combined_log_service(components)
-        if log_service:
-            procfile_lines.append(log_service)
+    # Skip log aggregation service - use make tail-logs instead
+    # Individual services already pipe to dev.log via tee
     
     # Write Procfile
     output_path = Path(args.output_dir) / args.output_file
