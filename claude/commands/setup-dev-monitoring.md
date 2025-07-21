@@ -24,30 +24,13 @@
 
 ## Phase 2: Component Overlap Analysis
 
-1. Analyze the components discovered in Phase 1 to identify overlaps where:
-   - **Single-focus components**: Target a specific service (e.g., `npm run dev` in `apps/frontend`)
-   - **Multi-focus components**: Orchestrate multiple services (e.g., `turbo run dev`, `lerna run dev`, `docker-compose up`)
-   - **Same service via different paths**: Both direct and orchestrated commands starting the same service
-
-2. **Overlap detection principles**:
-   - If a global orchestrator command (multi-focus) starts the same services as individual commands (single-focus), DROP the orchestrator
-   - If multiple commands start the same service on the same port, KEEP only the most specific one
-   - Prefer individual component commands over orchestrators for better log attribution
-   - Example: If you have `frontend`, `backend`, AND `turbo run dev` that starts both, DROP `turbo`
-
-3. **Port conflict analysis**:
-   - Check if multiple components specify the same port
-   - If conflicts exist, note which components conflict and recommend resolution
-
-4. **Create refined component list**:
-   - Remove multi-focus orchestrators that duplicate single-focus components
-   - Keep standalone services that aren't covered by orchestrators
-   - Ensure each service is started exactly once
-
-5. **STOP** → "Component overlap analysis complete. Remove [list components to drop]? (y/n)"
-   - Show original component count vs refined count
-   - List specific components being dropped and why
-   - If no overlaps detected, proceed without changes
+1. Review discovered components for overlaps:
+   - **Single-focus**: Commands that start one service (e.g., `npm run dev` in specific directory)
+   - **Multi-focus**: Orchestrators that start multiple services (e.g., `turbo run dev`, `docker-compose up`)
+   - **Duplicates**: Same service started via different commands
+2. **Exclusion principle**: When orchestrator commands overlap with individual component commands, exclude the orchestrator for better log attribution
+3. Identify port conflicts between components
+4. **STOP** → "Exclude overlapping components: [list components to exclude from monitoring]? (y/n)"
 
 ## Phase 3: Watch Pattern Analysis
 
