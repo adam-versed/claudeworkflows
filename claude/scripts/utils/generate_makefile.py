@@ -86,10 +86,10 @@ dev:
         
         content += f"""
 \t@echo "Starting {label}..."
-\t@cd {cwd} && {env_prefix}{start_command} 2>&1 | \\
+\t@(cd {cwd} && {env_prefix}{start_command} 2>&1 | \\
 \t\twhile IFS= read -r line; do \\
-\t\t\techo "[$(date '+%H:%M:%S')] [{label}] $$line"; \\
-\t\tdone | tee -a ./dev.log &"""
+\t\t\techo "[$(date '+%H:%M:%S')] [{label}] $$line" | tee -a $$(PWD)/dev.log; \\
+\t\tdone) &"""
     
     content += """
 \t@echo "All services started. Use 'make tail-logs' to monitor output."
