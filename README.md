@@ -8,6 +8,18 @@
 > **Hybrid AI-Automation System for Claude Code**  
 > 12 specialized workflow commands + 25 Python analysis scripts + claude.md build switches = Production-ready development automation
 
+## 📋 TL;DR Executive Summary
+
+**What it is:** Production-ready automation system that transforms Claude Code into a comprehensive development toolkit with OWASP security analysis, performance profiling, and intelligent project monitoring.
+
+**Quick Start:** Run `./install.sh` → Use commands like `/analyze-security`, `/plan-solution --tdd`, `/setup-dev-monitoring` → Get professional insights instantly.
+
+**Key Features:** [🔍 6 Analysis Commands](#-analysis-commands-6) • [📐 3 Planning Commands](#-plan-commands-3) • [🔧 3 Fix Commands](#-fix-commands-3) • [🔒 OWASP Security Testing](#-security-analysis) • [⚡ 25 Analysis Scripts](#-analysis-scripts-architecture) • [🌐 Multi-Language Support](#-programming-language-support) • [🔧 Development Monitoring](#-development-monitoring)
+
+**Installation:** [Quick Install](#-installation) • [MCP Tools](#mcp-tools-optional-enhancement) • [Dependencies](#python-libraries-installed) • [Uninstall](#uninstalling)
+
+---
+
 Transform your Claude Code experience with measurable, automated analysis across **security**, **performance**, **architecture**, and **code quality**. Get professional-grade insights in seconds, not hours.
 
 ## 🛠️ Installation
