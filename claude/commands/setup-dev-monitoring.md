@@ -22,30 +22,32 @@
    - Makefile generation will FAIL if any component lacks a proper start command
 6. Document component structure with proposed log labels AND verified start commands
 
-## Phase 2: Component Overlap Detection
+## Phase 2: Component Overlap Analysis
 
-1. Use Glob tool to locate overlap detection script: `**/scripts/utils/detect_component_overlaps.py`
-2. Analyze components for overlaps and conflicts by creating JSON of discovered components and running:
+1. Analyze the components discovered in Phase 1 to identify overlaps where:
+   - **Single-focus components**: Target a specific service (e.g., `npm run dev` in `apps/frontend`)
+   - **Multi-focus components**: Orchestrate multiple services (e.g., `turbo run dev`, `lerna run dev`, `docker-compose up`)
+   - **Same service via different paths**: Both direct and orchestrated commands starting the same service
 
-```bash
-python [resolved_path]/detect_component_overlaps.py --components '[JSON_COMPONENTS]' --project-path . --json
-```
+2. **Overlap detection principles**:
+   - If a global orchestrator command (multi-focus) starts the same services as individual commands (single-focus), DROP the orchestrator
+   - If multiple commands start the same service on the same port, KEEP only the most specific one
+   - Prefer individual component commands over orchestrators for better log attribution
+   - Example: If you have `frontend`, `backend`, AND `turbo run dev` that starts both, DROP `turbo`
 
-3. **Parse overlap analysis results**:
-   - **Monorepo detection**: Turborepo, Lerna, Nx, Yarn workspaces, pnpm workspaces
-   - **Command pattern conflicts**: Global orchestrator vs individual component commands
-   - **Port conflicts**: Multiple services trying to use the same port
-   - **Duplication issues**: Same service running through multiple paths
+3. **Port conflict analysis**:
+   - Check if multiple components specify the same port
+   - If conflicts exist, note which components conflict and recommend resolution
 
-4. **Apply resolution strategy** based on detected overlaps:
-   - **Turborepo projects**: Prefer individual components (`npm run dev` in each directory) over global `turbo run dev`
-   - **Lerna projects**: May prefer global orchestrator if components are interdependent
-   - **Port conflicts**: Adjust port assignments or remove conflicting components
-   - **Remove duplicates**: Keep only the optimal monitoring approach for each service
+4. **Create refined component list**:
+   - Remove multi-focus orchestrators that duplicate single-focus components
+   - Keep standalone services that aren't covered by orchestrators
+   - Ensure each service is started exactly once
 
-5. **STOP** → "Overlap analysis complete. Apply recommended resolution? (y/n)"
-   - If overlaps detected, show what will be removed/kept
-   - If no overlaps, proceed without changes
+5. **STOP** → "Component overlap analysis complete. Remove [list components to drop]? (y/n)"
+   - Show original component count vs refined count
+   - List specific components being dropped and why
+   - If no overlaps detected, proceed without changes
 
 ## Phase 3: Watch Pattern Analysis
 
@@ -60,7 +62,7 @@ python [resolved_path]/detect_component_overlaps.py --components '[JSON_COMPONEN
 
 ## Phase 7: System Dependencies Check and Install
 
-1. Use Glob tool to locate installer script: `**/scripts/setup/dev-monitoring/install_monitoring_tools.py`
+1. Use Glob tool to locate installer script: `~/.claude/**/scripts/setup/dev-monitoring/install_monitoring_tools.py` OR `**/scripts/setup/dev-monitoring/install_monitoring_tools.py`
 2. Execute dependency check and installation (script includes integrated prerequisite checking):
 
 ```bash
@@ -69,13 +71,14 @@ python [resolved_path]/install_monitoring_tools.py --dry-run --project-type [det
 
 3. **Parse dry-run output** to identify:
    - Prerequisites status (Python, Git, Node.js)
-   - Tools already installed (skip these)  
+   - Tools already installed (skip these)
    - Only missing dependencies that need installation
 4. **ONLY if missing dependencies found**, run actual installation:
 
 ```bash
 python [resolved_path]/install_monitoring_tools.py --project-type [detected_types]
 ```
+
 5. **STOP** → "Install missing dependencies: [list only missing tools]? (y/n)"
 6. If approved, execute only the installation commands for missing tools
 
