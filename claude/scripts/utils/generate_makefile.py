@@ -166,6 +166,8 @@ logs:
 
 tail-logs:
 \t@echo "=== Following Logs (Ctrl+C to exit) ==="
+\t@echo "Killing any existing tail processes..."
+\t@pkill -f "tail -f.*dev.log" 2>/dev/null || true
 \t@if [ -f "./dev.log" ]; then tail -f ./dev.log; else echo "No ./dev.log found. Start services first."; fi
 """
     
@@ -175,6 +177,7 @@ tail-logs:
         label = component.get('label', name.upper())
         
         content += f"""
+
 {name}-logs:
 \t@echo "=== {label} Logs ==="
 \t@if [ -f "./dev.log" ]; then grep "\\[{label}\\]" ./dev.log | tail -50; else echo "No ./dev.log found"; fi
@@ -185,6 +188,7 @@ tail-logs:
 def generate_health_targets(components_info):
     """Generate health check targets."""
     content = """
+
 health:
 \t@echo "=== Health Check ==="
 """
@@ -211,6 +215,7 @@ health:
         
         if port:
             content += f"""
+
 {name}-health:
 \t@echo "=== {label} Health ==="
 \t@curl -sf http://localhost:{port}{health_endpoint} 2>/dev/null && \\
