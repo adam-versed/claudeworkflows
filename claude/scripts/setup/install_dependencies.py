@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 """
-Dependency installer for SuperCopilot scriptable workflows.
+Dependency installer for claudeworkflows scriptable workflows.
 Handles cross-platform installation of required Python packages.
 """
 

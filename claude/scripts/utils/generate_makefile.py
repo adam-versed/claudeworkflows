@@ -25,7 +25,7 @@ def generate_makefile_header(components_info):
 # Default target
 help:
 \t@echo "Available targets:"
-\t@echo "  dev          - Start all development services (USER ONLY)"
+\t@echo "  dev          - Start all services with shoreman (USER ONLY)"
 \t@echo "  stop         - Stop all development services (USER ONLY)"
 \t@echo "  status       - Show service status"
 \t@echo "  logs         - Show aggregated logs"
@@ -53,47 +53,23 @@ def generate_component_targets(components_info):
     return '\n'.join(targets)
 
 def generate_dev_target(components_info):
-    """Generate the dev target for starting services."""
+    """Generate the dev target for starting services using shoreman."""
     content = """
 # USER-ONLY COMMANDS - Claude should never execute these
 dev:
-\t@echo "Starting development services..."
+\t@echo "Starting development services with shoreman..."
 \t@echo "Clearing previous logs..."
 \t@rm -f ./dev.log
 \t@touch ./dev.log
-"""
-    
-    for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        start_command = component.get('start_command')
-        cwd = component.get('cwd', '.')
-        port = component.get('port')
-        
-        # Validate start command - refuse to generate placeholder commands
-        if not start_command or start_command.strip() == '' or 'No start command defined' in start_command:
-            print(f"ERROR: Component '{name}' has no valid start command. Received: '{start_command}'")
-            print(f"Makefile generation requires actual start commands for all components.")
-            print(f"Please ensure component analysis populates 'start_command' field with real commands like 'npm run dev'")
-            sys.exit(1)
-        
-        # Add port environment variable if specified
-        env_vars = []
-        if port:
-            env_vars.append(f"PORT={port}")
-        
-        env_prefix = " ".join([f"{var}" for var in env_vars]) + " " if env_vars else ""
-        
-        content += f"""
-\t@echo "Starting {label}..."
-\t@(cd {cwd} && {env_prefix}{start_command} 2>&1 | \\
-\t\twhile IFS= read -r line; do \\
-\t\t\techo "[$(date '+%H:%M:%S')] [{label}] $$line" | tee -a $$(PWD)/dev.log; \\
-\t\tdone) &"""
-    
-    content += """
-\t@echo "All services started. Use 'make tail-logs' to monitor output."
-\t@echo "Use 'make stop' to stop all services."
+\t@if command -v shoreman >/dev/null 2>&1; then \\
+\t\tshoreman Procfile; \\
+\telif command -v foreman >/dev/null 2>&1; then \\
+\t\tforeman start; \\
+\telse \\
+\t\techo "ERROR: Neither shoreman nor foreman found."; \\
+\t\techo "Run: gem install shoreman"; \\
+\t\texit 1; \\
+\tfi
 """
     
     return content

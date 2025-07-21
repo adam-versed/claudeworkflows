@@ -1,8 +1,6 @@
-# setup-dev-monitoring v0.3
+# setup-dev-monitoring v0.91
 
 **Purpose**: Establish comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
-
-🚨 **CRITICAL**: This workflow contains multiple 🛑 **STOP - USER CONFIRMATION REQUIRED** points. You MUST halt execution at each STOP point and wait for explicit user confirmation before proceeding to the next phase. DO NOT continue through all phases automatically.
 
 ## Phase 1: Project Component Discovery
 
@@ -33,8 +31,7 @@
 2. **Exclusion principle**: When orchestrator commands overlap with individual component commands, exclude the orchestrator for better log attribution
 3. Identify port conflicts between components
 4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Exclude overlapping components: [list components to exclude from monitoring]? (y/n)"
-   - **DO NOT CONTINUE** to Phase 3 until user responds
-   - Wait for user confirmation before proceeding
+5. Do not proceed until user confirmation received
 
 ## Phase 3: Watch Pattern Analysis
 
@@ -46,34 +43,30 @@
 2. **Default approach**: Allow projects with NO custom watch requirements - framework hot-reload is sufficient
 3. Identify technologies that handle their own file watching vs. those needing external tools
 4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Component analysis complete. Proceed with setup? (y/n)"
-   - **DO NOT CONTINUE** to Phase 7 until user responds
-   - Wait for user confirmation before proceeding
+5. Do not proceed until user confirmation received
 
-## Phase 7: System Dependencies Check and Install
+## Phase 4: System Dependencies Check and Install
 
-1. Use Glob tool to locate installer script: `~/.claude/**/scripts/setup/dev-monitoring/install_monitoring_tools.py` OR `**/scripts/setup/dev-monitoring/install_monitoring_tools.py`
-2. Execute dependency check and installation (script includes integrated prerequisite checking):
+1. **Try project level first**: Use Glob tool to locate installer script: `**/scripts/setup/dev-monitoring/install_monitoring_dependencies.py`
+2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/setup/dev-monitoring/install_monitoring_dependencies.py`
+3. Execute dependency check and installation (script includes integrated prerequisite checking):
 
 ```bash
-python [resolved_path]/install_monitoring_tools.py --dry-run --project-type [detected_types]
+python [resolved_path]/install_monitoring_dependencies.py --dry-run
 ```
 
-3. **Parse dry-run output** to identify:
-   - Prerequisites status (Python, Git, Node.js)
-   - Tools already installed (skip these)
+4. Parse dry-run output to identify:
+   - Prerequisites status (Python 3.x)
+   - Core tools status (make, watchexec, foreman)
    - Only missing dependencies that need installation
-4. **ONLY if missing dependencies found**, run actual installation:
+5. ONLY if missing dependencies found: 🛑 STOP - USER CONFIRMATION REQUIRED → “Install missing core tools: [list only missing tools]? (y/n)”
+   - Only proceed with installation if user approves:
 
 ```bash
-python [resolved_path]/install_monitoring_tools.py --project-type [detected_types]
+python [resolved_path]/install_monitoring_dependencies.py
 ```
 
-5. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Install missing dependencies: [list only missing tools]? (y/n)"
-   - **DO NOT CONTINUE** to Phase 8 until user responds
-   - Only proceed with installation if user approves
-6. If approved, execute only the installation commands for missing tools
-
-## Phase 8: Existing File Handling
+## Phase 5: Existing File Handling
 
 1. Check for existing Procfile and Makefile in current directory:
    ```bash
@@ -85,7 +78,7 @@ python [resolved_path]/install_monitoring_tools.py --project-type [detected_type
    ```
 2. If existing files found:
    - 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Existing Procfile/Makefile found. Choose action: (b)ackup existing files, (o)verwrite, or (c)ancel?"
-   - **DO NOT CONTINUE** until user chooses an action
+   - Do not proceed until user confirmation received
    - Respect user choice: backup, overwrite, or cancel workflow
    - If backup chosen: Create timestamped backups before proceeding
      ```bash
@@ -94,61 +87,105 @@ python [resolved_path]/install_monitoring_tools.py --project-type [detected_type
      [ -f "Makefile" ] && cp Makefile "Makefile.backup.$TIMESTAMP"
      ```
    - If overwrite chosen: Continue to next phase
-   - If cancel chosen: Exit workflow
+   - If cancel chosen: 🛑 **STOP Exit workflow**
 3. If no existing files: Continue to next phase
 
-## Phase 9: Makefile Generation
+## Phase 6: Makefile Generation
 
-1. Use Glob tool to locate Makefile generation script: `~/.claude/**/scripts/utils/generate_makefile.py` OR `**/scripts/utils/generate_makefile.py`
-2. Execute Makefile generation with component analysis:
+1. Use Glob tool to locate Makefile generation script: `**/scripts/utils/generate_makefile.py`
+2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/utils/generate_makefile.py`
+3. Execute Makefile generation using component analysis from Phases 1-3:
 
 ```bash
 python [resolved_path]/generate_makefile.py \
-  --components '[component_json]' \
-  --watch-patterns '[watch_patterns_json]' \
+  --components '[
+    {
+      "name": "frontend",
+      "label": "FRONTEND",
+      "cwd": "apps/web",
+      "start_command": "npm run dev",
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "label": "BACKEND",
+      "cwd": "packages/backend",
+      "start_command": "npm run dev",
+      "port": null
+    }
+  ]' \
+  --watch-patterns '[
+    "src/**/*.{ts,tsx,js,jsx}",
+    "packages/**/*.py"
+  ]' \
   --output-dir [current_directory]
 ```
 
-3. Review generated Makefile targets and safety warnings
+4. Review generated Makefile targets and safety warnings
 
-## Phase 10: Procfile Generation
+## Phase 7: Procfile Generation
 
-1. Use Glob tool to locate Procfile generation script: `~/.claude/**/scripts/utils/generate_procfile.py` OR `**/scripts/utils/generate_procfile.py`
-2. Execute Procfile generation with component details:
+1. Use Glob tool to locate Procfile generation script: `**/scripts/utils/generate_procfile.py`
+2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/utils/generate_procfile.py`
+3. Execute Procfile generation using same component analysis from Phases 1-3:
 
 ```bash
 python [resolved_path]/generate_procfile.py \
-  --components '[component_json]' \
+  --components '[
+    {
+      "name": "frontend",
+      "label": "FRONTEND",
+      "cwd": "apps/web",
+      "start_command": "npm run dev",
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "label": "BACKEND",
+      "cwd": "packages/backend",
+      "start_command": "npm run dev",
+      "port": null
+    }
+  ]' \
   --log-format unified \
-  --output-dir [current_directory] \
-  --force-logging
+  --output-dir [current_directory]
 ```
 
-3. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
+4. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
    - Every service MUST pipe output to `./dev.log` with timestamps
    - Format: `2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [SERVICE] $line"; done | tee -a ./dev.log`
-   - Even services without custom watches must log their output
-   - No service should run without contributing to unified logging
-4. Review generated service definitions and log formatting
+   - **Port handling**: Next.js services should use both `PORT=X` and `-- --port X` for reliability
+   - **No separate logs service**: Individual services handle their own logging via `tee`
+5. Review generated service definitions and log formatting
 
-## Phase 11: Project CLAUDE.md Integration
+## Phase 8: Project CLAUDE.md Integration
 
-1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/**/scripts/setup/dev-monitoring/update_claude_md.py` OR `**/scripts/setup/dev-monitoring/update_claude_md.py`
-2. Execute CLAUDE.md update to add development workflow commands:
+1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/scripts/setup/dev-monitoring/update_claude_md.py`
+2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/setup/dev-monitoring/update_claude_md.py`
+3. Execute CLAUDE.md update to add development workflow commands:
 
 ```bash
 python [resolved_path]/update_claude_md.py \
   --project-dir [current_directory] \
-  --components '[component_json]'
+  --components '[
+    {
+      "name": "frontend",
+      "label": "FRONTEND",
+      "cwd": "apps/web",
+      "start_command": "npm run dev",
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "label": "BACKEND",
+      "cwd": "packages/backend",
+      "start_command": "npm run dev",
+      "port": null
+    }
+  ]'
 ```
 
-3. Script will:
-   - Create CLAUDE.md if it doesn't exist
-   - Add "Development Workflow Commands (Make-based)" section
-   - Include service management restrictions and available commands
-   - Document log files and debugging workflow
-
-## Phase 12: Validation and Testing
+## Phase 9: Validation and Testing
 
 1. **CRITICAL VALIDATION** - Check generated files contain real commands:
    - **Makefile**: NO `echo "No start command defined"` placeholders allowed - must use actual start commands from component analysis
@@ -159,11 +196,4 @@ python [resolved_path]/update_claude_md.py \
    - Makefile syntax check
    - Log aggregation setup works
    - CLAUDE.md exists and contains make commands
-3. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Monitoring setup complete and validated. please test the commands with make dev / status / logs - all worked (y/n)?"
-   - **WORKFLOW COMPLETE** - Wait for user testing confirmation
-   - Do not proceed further - this is the final validation step
-
-## Optional Flags
-
-- `--c7`: Research technology-specific monitoring and watch capabilities
-- `--seq`: Detailed step-by-step analysis breakdown
+3. "Monitoring setup complete and validated. please test the commands with make dev / status / logs"
