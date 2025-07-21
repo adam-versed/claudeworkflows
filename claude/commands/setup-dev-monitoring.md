@@ -2,6 +2,8 @@
 
 **Purpose**: Establish comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
 
+🚨 **CRITICAL**: This workflow contains multiple 🛑 **STOP - USER CONFIRMATION REQUIRED** points. You MUST halt execution at each STOP point and wait for explicit user confirmation before proceeding to the next phase. DO NOT continue through all phases automatically.
+
 ## Phase 1: Project Component Discovery
 
 1. Use LS and Glob tools to explore project structure without assumptions
@@ -30,7 +32,9 @@
    - **Duplicates**: Same service started via different commands
 2. **Exclusion principle**: When orchestrator commands overlap with individual component commands, exclude the orchestrator for better log attribution
 3. Identify port conflicts between components
-4. **STOP** → "Exclude overlapping components: [list components to exclude from monitoring]? (y/n)"
+4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Exclude overlapping components: [list components to exclude from monitoring]? (y/n)"
+   - **DO NOT CONTINUE** to Phase 3 until user responds
+   - Wait for user confirmation before proceeding
 
 ## Phase 3: Watch Pattern Analysis
 
@@ -41,7 +45,9 @@
    - **Watch patterns**: Only source code - `src/**/*.{ts,tsx,js,jsx}`, `**/*.py`, `**/*.go`, etc.
 2. **Default approach**: Allow projects with NO custom watch requirements - framework hot-reload is sufficient
 3. Identify technologies that handle their own file watching vs. those needing external tools
-4. **STOP** → "Component analysis complete. Proceed with setup? (y/n)"
+4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Component analysis complete. Proceed with setup? (y/n)"
+   - **DO NOT CONTINUE** to Phase 7 until user responds
+   - Wait for user confirmation before proceeding
 
 ## Phase 7: System Dependencies Check and Install
 
@@ -62,10 +68,12 @@ python [resolved_path]/install_monitoring_tools.py --dry-run --project-type [det
 python [resolved_path]/install_monitoring_tools.py --project-type [detected_types]
 ```
 
-5. **STOP** → "Install missing dependencies: [list only missing tools]? (y/n)"
+5. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Install missing dependencies: [list only missing tools]? (y/n)"
+   - **DO NOT CONTINUE** to Phase 8 until user responds
+   - Only proceed with installation if user approves
 6. If approved, execute only the installation commands for missing tools
 
-## Phase 3.5: Existing File Handling
+## Phase 8: Existing File Handling
 
 1. Check for existing Procfile and Makefile in current directory:
    ```bash
@@ -76,7 +84,9 @@ python [resolved_path]/install_monitoring_tools.py --project-type [detected_type
    fi
    ```
 2. If existing files found:
-   - **STOP** → "Existing Procfile/Makefile found. Choose action: (b)ackup existing files, (o)verwrite, or (c)ancel?"
+   - 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Existing Procfile/Makefile found. Choose action: (b)ackup existing files, (o)verwrite, or (c)ancel?"
+   - **DO NOT CONTINUE** until user chooses an action
+   - Respect user choice: backup, overwrite, or cancel workflow
    - If backup chosen: Create timestamped backups before proceeding
      ```bash
      TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -87,7 +97,7 @@ python [resolved_path]/install_monitoring_tools.py --project-type [detected_type
    - If cancel chosen: Exit workflow
 3. If no existing files: Continue to next phase
 
-## Phase 7: Makefile Generation
+## Phase 9: Makefile Generation
 
 1. Use Glob tool to locate Makefile generation script: `~/.claude/**/scripts/utils/generate_makefile.py` OR `**/scripts/utils/generate_makefile.py`
 2. Execute Makefile generation with component analysis:
@@ -101,7 +111,7 @@ python [resolved_path]/generate_makefile.py \
 
 3. Review generated Makefile targets and safety warnings
 
-## Phase 7: Procfile Generation
+## Phase 10: Procfile Generation
 
 1. Use Glob tool to locate Procfile generation script: `~/.claude/**/scripts/utils/generate_procfile.py` OR `**/scripts/utils/generate_procfile.py`
 2. Execute Procfile generation with component details:
@@ -121,7 +131,7 @@ python [resolved_path]/generate_procfile.py \
    - No service should run without contributing to unified logging
 4. Review generated service definitions and log formatting
 
-## Phase 7: Project CLAUDE.md Integration
+## Phase 11: Project CLAUDE.md Integration
 
 1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/**/scripts/setup/dev-monitoring/update_claude_md.py` OR `**/scripts/setup/dev-monitoring/update_claude_md.py`
 2. Execute CLAUDE.md update to add development workflow commands:
@@ -138,7 +148,7 @@ python [resolved_path]/update_claude_md.py \
    - Include service management restrictions and available commands
    - Document log files and debugging workflow
 
-## Phase 7: Validation and Testing
+## Phase 12: Validation and Testing
 
 1. **CRITICAL VALIDATION** - Check generated files contain real commands:
    - **Makefile**: NO `echo "No start command defined"` placeholders allowed - must use actual start commands from component analysis
@@ -149,11 +159,9 @@ python [resolved_path]/update_claude_md.py \
    - Makefile syntax check
    - Log aggregation setup works
    - CLAUDE.md exists and contains make commands
-3. Test monitoring infrastructure:
-   - Execute `make status` to verify commands work
-   - Verify log file creation uses writable path
-   - Test that frontend/backend components can start and log output
-4. **STOP** → "Monitoring setup complete and validated. All services have real start commands? (y/n)"
+3. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Monitoring setup complete and validated. please test the commands with make dev / status / logs - all worked (y/n)?"
+   - **WORKFLOW COMPLETE** - Wait for user testing confirmation
+   - Do not proceed further - this is the final validation step
 
 ## Optional Flags
 
