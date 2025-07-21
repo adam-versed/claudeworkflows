@@ -16,11 +16,24 @@
 - task planning modes, good partnership with @badlogics /todo framework
 - code analysis modes, programmatic + llm analysis of different codebase factors
 - easy dev monitoring, time saving dev logging system that enables quick capture of events for your LLM chat(s) to save on copying and pasting all over the place
+
+  
 **Quick Start:** Run `./install.sh` → Use commands like `/analyze-security`, `/plan-solution --tdd`, `/setup-dev-monitoring` → Get insights instantly.
 
-**Key Features:** [🔍 6 Analysis Commands](#-analysis-commands-6) • [📐 3 Planning Commands](#-plan-commands-3) • [🔧 3 Fix Commands](#-fix-commands-3) • [🔒 OWASP Security Testing](#-security-analysis) • [⚡ 25 Analysis Scripts](#-analysis-scripts-architecture) • [🌐 Multi-Language Support](#-programming-language-support) • [🔧 Development Monitoring](#-development-monitoring)
+**Key Features:** 
+• [🔍 6 Analysis Commands](#-analysis-commands-6) 
+• [📐 3 Planning Commands](#-plan-commands-3) 
+• [🔧 3 Fix Commands](#-fix-commands-3) 
+• [🔒 OWASP Security Testing](#-security-analysis) 
+• [⚡ 25 Analysis Scripts](#-analysis-scripts-architecture) 
+• [🌐 Multi-Language Support](#-programming-language-support) 
+• [🔧 Development Monitoring](#-development-monitoring)
 
-**Installation:** [Quick Install](#-installation) • [MCP Tools](#mcp-tools-optional-enhancement) • [Dependencies](#python-libraries-installed) • [Uninstall](#uninstalling)
+**Installation:** 
+• [Quick Install](#-installation) 
+• [MCP Tools](#mcp-tools-optional-enhancement) 
+• [Dependencies](#python-libraries-installed) 
+• [Uninstall](#uninstalling)
 
 ---
 
