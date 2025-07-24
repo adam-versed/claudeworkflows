@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 > **Hybrid AI-Automation System for Claude Code**  
-> 12 specialized workflow commands + 25 Python analysis scripts + claude.md build switches = Production-ready development automation
+> Specialized workflow commands + LLM actions + Python analysis scripts + claude.md build switches = multi function, just in time, development automation
 
 ## 📋 TL;DR Executive Summary
 
@@ -15,29 +15,20 @@
 - combines the best of LLM and programmitc scripts to reduce context errors, hallucinations and token usage
 - task planning modes, good partnership with @badlogics /todo framework
 - code analysis modes, programmatic + llm analysis of different codebase factors
+- tool actions, additional of code shaping tasks contextualised to your project - as claude hooks
 - easy dev monitoring, time saving dev logging system that enables quick capture of events for your LLM chat(s) to save on copying and pasting all over the place
 
-  
 **Quick Start:** Run `./install.sh` → Use commands like `/analyze-security`, `/plan-solution --tdd`, `/setup-dev-monitoring` → Get insights instantly.
 
-**Key Features:** 
-• [🔍 6 Analysis Commands](#-analysis-commands-6) 
-• [📐 3 Planning Commands](#-plan-commands-3) 
-• [🔧 3 Fix Commands](#-fix-commands-3) 
-• [🔒 OWASP Security Testing](#-security-analysis) 
-• [⚡ 25 Analysis Scripts](#-analysis-scripts-architecture) 
-• [🌐 Multi-Language Support](#-programming-language-support) 
-• [🔧 Development Monitoring](#-development-monitoring)
-
-**Installation:** 
-• [Quick Install](#-installation) 
-• [MCP Tools](#mcp-tools-optional-enhancement) 
-• [Dependencies](#python-libraries-installed) 
+**Installation:**
+• [Quick Install](#-installation)
+• [MCP Tools](#mcp-tools-optional-enhancement)
+• [Dependencies](#python-libraries-installed)
 • [Uninstall](#uninstalling)
 
 ---
 
-Transform your Claude Code experience with measurable, automated analysis across **security**, **performance**, **architecture**, and **code quality**. Get professional-grade insights in seconds, not hours.
+Transform your Claude Code experience with measurable, automated analysis across **security**, **performance**, **architecture**, and **code quality**.
 
 ## 🛠️ Installation
 
@@ -47,12 +38,14 @@ Transform your Claude Code experience with measurable, automated analysis across
 - **Claude Code CLI** (claude code base + mcp tools)
 - **Node.js** (any version, for MCP tools, optional)
 
+### Special note
+
+- **Todo workflow** CC commands come from [badlogic](https://github.com/badlogic/claude-commands/blob/main/todo.md) - pairs well with the workflows, particularly /plan-\* as they produce todo.md lists. It's a more efficient version of CC plan mode/todos, but ive modified it to use Claude.md rather than a bespoke file for project description.
+
 ### Recommended Optionals
 
 - **Context7 MCP** best practice documentation to support code generation
 - **Sequential thinking MCP** use to breakdown complext tasks (can augment or cheaper alternative for non reasoning models)
-
-- **Todo workflow** CC command from [badlogic](https://github.com/badlogic/claude-commands/blob/main/todo.md) - pairs well with the workflows, particularly /plan-\* as they produce todo.md lists. It's a more efficient version of CC plan mode/todos
 
 ### Installation Options
 
@@ -219,13 +212,15 @@ The uninstaller will interactively prompt for each Python package and MCP server
 | **`/analyze-root-cause`**   | Debug investigation          | Error patterns, execution tracing, change analysis            |
 | **`/analyze-ux`**           | User experience review       | Accessibility evaluation, usability assessment                |
 
-### 📐 Plan Commands (3)
+### 📐 Plan Commands (5)
 
 | Command              | Purpose                         | Key Features                                                   |
 | -------------------- | ------------------------------- | -------------------------------------------------------------- |
 | **`/plan-solution`** | Technical challenge solving     | Research-driven solution design with 3 options                 |
 | **`/plan-ux-prd`**   | UX-focused product requirements | User experience design, interface specifications               |
 | **`/plan-refactor`** | Refactoring strategy            | Code improvement planning, automated analysis, risk assessment |
+| **`/todo-branch`**   | Todo implementation workflow    | Branch-based todo execution with structured phases             |
+| **`/todo-worktree`** | Todo implementation with worktrees | Git worktree-based isolated todo development               |
 
 ### 🔧 Fix Commands (3)
 
@@ -234,6 +229,14 @@ The uninstaller will interactively prompt for each Python package and MCP server
 | **`/fix-bug`**         | Issue resolution         | Root cause analysis, comprehensive debugging |
 | **`/fix-performance`** | Performance optimization | Bottleneck resolution, scaling improvements  |
 | **`/fix-test`**        | Test failure resolution  | CI/CD debugging, test suite optimization     |
+
+### 🪝 Hook Commands (3)
+
+| Command                          | Purpose                        | Key Features                                               |
+| -------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| **`/add-code-pretooluse-rules`** | Enforce coding rules pre-edit  | PreToolUse hooks for Edit/Write tools with rule files     |
+| **`/add-code-posttooluse-quality-gates`** | Quality validation post-edit | PostToolUse hooks for lint/typecheck/build validation |
+| **`/add-code-precommit-checks`** | Pre-commit quality enforcement | PreToolUse hooks for git commits with violation blocking  |
 
 ### 🎛️ Universal Build Flags
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#update_claude_md.py v0.3
 """
 CLAUDE.md Update Script for Development Workflow Commands
 Adds or updates the Development Workflow Commands section in project CLAUDE.md

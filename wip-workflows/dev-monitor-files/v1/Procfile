@@ -1,8 +1,0 @@
-# Turborepo Development Services
-# Each service runs in its own process with unified logging
-
-web: cd apps/web && PORT=3000 npm run dev 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [WEB] $line"; done | tee -a ../../dev.log
-backend: npm run setup --workspace packages/backend 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [BACKEND] $line"; done | tee -a dev.log
-
-# Optional: Additional services can be added here
-# redis: redis-server 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [REDIS] $line"; done | tee -a dev.log
