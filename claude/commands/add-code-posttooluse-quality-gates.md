@@ -103,7 +103,7 @@ Quality gate commands vary by project type and available tools.
         "hooks": [
           {
             "type": "command",
-            "command": "if [[ \"$CLAUDE_TOOL_ARGS\" =~ .*\\.py ]]; then echo '✅ [HOOK TRIGGERED] Running quality gates after file edit...' && ruff check && mypy . && python -m build; fi"
+            "command": "if [[ \"$CLAUDE_TOOL_ARGS\" =~ \\.py$ ]]; then echo '✅ [HOOK TRIGGERED] Running quality gates after file edit...' && ruff check && mypy . && python -m build; fi"
           }
         ]
       }
@@ -123,7 +123,7 @@ Quality gate commands vary by project type and available tools.
         "hooks": [
           {
             "type": "command",
-            "command": "if [[ \"$CLAUDE_TOOL_ARGS\" =~ .*\\.rs ]]; then echo '✅ [HOOK TRIGGERED] Running quality gates after file edit...' && cargo clippy && cargo check && cargo build; fi"
+            "command": "if [[ \"$CLAUDE_TOOL_ARGS\" =~ \\.rs$ ]]; then echo '✅ [HOOK TRIGGERED] Running quality gates after file edit...' && cargo clippy && cargo check && cargo build; fi"
           }
         ]
       }
