@@ -23,11 +23,14 @@ Execute code quality analysis scripts via Bash tool for measurable quality metri
 
 ```bash
 # Example execution format (LLM will determine actual paths):
+# LLM must locate script installation directory dynamically using Glob tool
+# Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
 python [SCRIPT_PATH]/complexity_lizard.py . --output-format json
 python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
 ```
 
 **Script Location Process:**
+
 1. Use Glob tool to find script paths: `**/scripts/analyze/code_quality/*.py`
 2. Verify script availability and determine correct absolute paths
 3. Execute scripts with resolved paths

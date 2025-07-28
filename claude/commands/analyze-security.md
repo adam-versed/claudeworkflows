@@ -13,7 +13,8 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
 1. **Execute automated security scripts** - Run comprehensive OWASP Top 10 vulnerability detection
 
    ```bash
-   # Note: LLM must locate script installation directory dynamically using Glob tool
+   # Example execution format (LLM will determine actual paths):
+   # LLM must locate script installation directory dynamically using Glob tool
    # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
    python [SCRIPT_PATH]/detect_secrets.py . --output-format json
    python [SCRIPT_PATH]/scan_vulnerabilities.py . --output-format json
