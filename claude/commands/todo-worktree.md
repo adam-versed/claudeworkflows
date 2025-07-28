@@ -4,7 +4,7 @@
 
 # modified to use Claude.md rather than bespoke project desc
 
-Structured workflow to transform vague todos into implemented features using git worktrees and VS Code handoff. Supports task isolation, resumption, and clean commit history.
+Structured workflow to transform vague todos into implemented features using git worktrees and subagent assignment. Supports task isolation, resumption, and clean commit history.
 
 ## Workflow
 
@@ -30,8 +30,6 @@ Structured workflow to transform vague todos into implemented features using git
 3. Read `Claude.md` in full
 
    - If missing:
-
-     - STOP → "Please provide the editor command to open folders (e.g. 'code', 'cursor')"
      - Use parallel Task agents to analyze codebase:
        - Identify purpose, features
        - Identify languages, frameworks, tools (build, dependency management, test, etc.)
@@ -73,9 +71,6 @@ Structured workflow to transform vague todos into implemented features using git
 
        [How to create and run tests]
 
-       ## Editor
-
-       - Open folder: [command]
        ```
 
      - STOP → Any corrections needed? (y/n)"
@@ -85,8 +80,8 @@ Structured workflow to transform vague todos into implemented features using git
    - Present numbered list of orphaned tasks
    - STOP → "Resume orphaned task? (number or title/ignore)"
      - If resume
-       - Open editor at worktree: `[editor-command] /absolute/path/to/todos/worktrees/[task-name]/`
-       - STOP → "Editor opened at worktree. Run `claude "/todo"` in worktree"
+       - Assign subagent to worktree directory with /todo-worktree as first action
+       - STOP → "Subagent assigned to worktree. The subagent will resume work automatically."
      - else go to SELECT
 
 ### SELECT
@@ -140,8 +135,8 @@ Structured workflow to transform vague todos into implemented features using git
 4. Draft implementation plan → STOP → "Use this implementation plan? (y/n)"
 5. Update `task.md` with fully refined content and set `**Status**: InProgress`
 6. Commit refined plan: `git add -A && git commit -m "[task-title]: Refined plan"`
-7. Open editor at worktree: `[editor-command] /absolute/path/to/todos/worktrees/[timestamp]-[task-title-slug]/`
-8. STOP → "Editor opened at worktree. Run `claude "/todo"` in worktree to start implementation"
+7. Assign subagent to worktree directory with /todo-worktree as first action to start implementation
+8. STOP → "Subagent assigned to worktree. The subagent will begin implementation automatically."
 
 ### IMPLEMENT
 

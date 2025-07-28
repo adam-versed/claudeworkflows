@@ -4,24 +4,27 @@ Setup PreToolUse hooks that enforce quality standards by preventing commits cont
 
 ## Behavior
 
-1. **Intercept Commits**: Catch git commit operations before execution
-2. **Scan Staged Files**: Check all staged files for quality violations
-3. **Block Violations**: Prevent commits containing rule violations with detailed error messages
-4. **Enforce Standards**: Maintain code quality by preventing workarounds and disabled checks
+1. **Detect Platform**: Identify operating system (Mac/Linux vs Windows) for shell command generation
+2. **Intercept Commits**: Catch git commit operations before execution
+3. **Scan Staged Files**: Check all staged files for quality violations
+4. **Block Violations**: Prevent commits containing rule violations with detailed error messages
+5. **Enforce Standards**: Maintain code quality by preventing workarounds and disabled checks
 
-## Process
+## Implementation Process
 
-1. **Detect Python**: Find available Python command (python3, python, or py)
-2. **Setup Directory Structure**: Create `.claude/scripts/` if it doesn't exist
-3. **Copy Validation Script**: Install pre-commit-rules.py to project's scripts directory
-4. **Configure Permissions**: Make validation script executable
-5. **Generate Hook**: Add PreToolUse hook to `.claude/settings.local.json`
-6. **Confirm Setup**: Report successful configuration with Python command used and restart requirement
+1. **Platform Detection**: Identify operating system for appropriate shell syntax
+2. **Detect Python**: Find available Python command (python3, python, or py) with platform-specific detection
+3. **Setup Directory Structure**: Create `.claude/scripts/` if it doesn't exist
+4. **Copy Validation Script**: Install pre-commit-rules.py to project's scripts directory
+5. **Configure Permissions**: Make validation script executable (Unix-like systems)
+6. **Generate Hook**: Add cross-platform PreToolUse hook to `.claude/settings.local.json`
+7. **Confirm Setup**: Report successful configuration with Python command used and restart requirement
 
-## Hook Template
+## Hook Templates
 
-PreToolUse hook that triggers before git commit operations to validate staged files.
+PreToolUse hooks that trigger before git commit operations to validate staged files.
 
+### Mac/Linux (using sh):
 ```json
 {
   "hooks": {
@@ -31,7 +34,26 @@ PreToolUse hook that triggers before git commit operations to validate staged fi
         "hooks": [
           {
             "type": "command",
-            "command": "if [[ \"$CLAUDE_TOOL_ARGS\" =~ git.*commit ]]; then echo '✅ [HOOK TRIGGERED] Running pre-commit checks' && [PYTHON_COMMAND] .claude/scripts/pre-commit-rules.py; fi"
+            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *git*commit*) echo \"✅ [HOOK TRIGGERED] Running pre-commit checks\" && [PYTHON_COMMAND] .claude/scripts/pre-commit-rules.py ;; esac'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Windows (using PowerShell):
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"if ($env:CLAUDE_TOOL_ARGS -match 'git.*commit') { Write-Host '✅ [HOOK TRIGGERED] Running pre-commit checks'; [PYTHON_COMMAND] .claude/scripts/pre-commit-rules.py }\""
           }
         ]
       }
@@ -44,7 +66,9 @@ PreToolUse hook that triggers before git commit operations to validate staged fi
 
 - **Hook Visibility**: Echo messages are only visible when using Ctrl+R verbose mode
 - **Activation**: After adding hooks, you must exit and restart Claude Code for the new hooks to become active
-- **Git Command Matching**: Hook uses bash conditionals to detect git commit commands in `$CLAUDE_TOOL_ARGS`
+- **Git Command Matching**: Uses shell conditionals (POSIX `case` for Mac/Linux, PowerShell regex for Windows) to detect git commit commands in `$CLAUDE_TOOL_ARGS`
+- **Cross-Platform Support**: Automatically detects platform and generates appropriate shell commands
+- **Python Detection**: Identifies correct Python executable for each platform (python3/python on Unix, py on Windows)
 
 ## Quality Rules Enforced
 
@@ -79,15 +103,6 @@ PreToolUse hook that triggers before git commit operations to validate staged fi
 # The hook will automatically detect Python and configure validation
 ```
 
-## Implementation Steps
-
-1. **Validate Python**: Check for Python 3 availability in order: python3, python, py
-2. **Create Script Directory**: Ensure `.claude/scripts/` exists
-3. **Copy Validation Script**: Install pre-commit-rules.py with violation detection logic
-4. **Set Executable**: Apply appropriate permissions to script
-5. **Read Existing Config**: Preserve any existing hooks in settings.local.json
-6. **Add PreCommit Hook**: Configure hook with detected Python command using JSON format
-7. **Report Success**: Confirm hook installation, Python command used, and restart requirement
 
 ## Generated Configuration
 
