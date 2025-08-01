@@ -23,7 +23,7 @@
 - **Contextual awareness** - Understands your project technologies, frameworks, and patterns
 - **Hybrid approach** - Combines LLM intelligence with programmatic scripts for accuracy
 - **Just-in-time** - Reduces token usage by only analyzing what's needed when needed
-- **Debuging-Efficiencies** - Uses make to setup server monitoring and commands LLM can use to retrieve failures, saving on copy and pasting all the time
+- **Debugging-Efficiencies** - Live monitoring dashboard shows real-time service status, unified logs, and health checks that Claude can query directly
 
 ## 🚀 Examples
 
@@ -37,7 +37,50 @@
 /todo-worktree
 ```
 
-### Example 2: Security Analysis
+### Example 2: Complete End-to-End Project Setup with Live Monitoring
+
+```bash
+# Plan UX and product requirements, generating implementation todos.md
+/plan-ux-prd "Mobile app for GitHub task management with real-time updates"
+
+# Initialize project using better-t-stack.dev CLI under the hood
+# Analyzes todos.md to intelligently select tech stack and setup structure
+/create-project mobile-task-app --from-todos ./todos/todos.md
+
+# Setup unified development monitoring - creates real-time dashboard
+/setup-dev-monitoring
+```
+
+**What you see after `/setup-dev-monitoring`:**
+
+![Stack Detection](images/stack-detection-analysis.png)
+_Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
+
+![Unified Logs](images/dev-logs-unified.png)
+_Timestamped unified logging: All services stream to `/dev.log` - Claude can query logs directly, eliminating copy/paste_
+
+![Service Status](images/service-status-dashboard.png)
+_Real-time service monitoring: Live status for API (port 3000) and Mobile (port 8081) with health indicators_
+
+**Key Features:**
+
+- 🚀 **Live service status**: Both API and Mobile services with health indicators
+- 📊 **Real-time logs**: Unified `/dev.log` with timestamped entries from all services
+- 🔍 **Smart analysis**: Auto-detects tech stack and configures optimal monitoring
+- ⚡ **Hot reload monitoring**: File watching patterns and change detection
+- 🛠️ **Available commands**: `make dev`, `make status`, `make logs` for instant debugging
+
+```bash
+# Add quality gates that work with the monitoring system
+/add-code-precommit-checks
+/add-code-posttooluse-quality-gates
+
+# Now Claude can use monitoring data for better debugging:
+# "Check the dev logs for recent API errors" → instant access to /dev.log
+# "What's the current service status?" → live health check results
+```
+
+### Example 3: Security Analysis
 
 ```bash
 # Get comprehensive security report following OWASP Top 10
@@ -52,6 +95,7 @@ See [detailed documentation](docs/detailed-documentation.md) for complete comman
 
 **Analysis:** `/analyze-security`, `/analyze-architecture`, `/analyze-performance`, `/analyze-code-quality`
 **Planning:** `/plan-solution`, `/plan-ux-prd`, `/plan-refactor`
+**Project Setup:** `/create-project` - Initialize new projects with [better-t-stack.dev](https://better-t-stack.dev/new) CLI
 **Implementation:** `/todo-branch`, `/todo-worktree`
 **Fixes:** `/fix-bug`, `/fix-performance`, `/fix-test`
 **Hooks:** `/add-code-pretooluse-rules`, `/add-code-posttooluse-quality-gates`
