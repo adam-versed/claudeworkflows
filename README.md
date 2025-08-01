@@ -118,6 +118,11 @@ The `wip-workflows/` directory contains experimental workflow agents I'm testing
 
 Feel free to explore and adapt these for your own experimentation.
 
+## 🙏 Acknowledgments
+
+- **Todo workflow** - Adapted from [@badlogic](https://github.com/badlogic/claude-commands/blob/main/todo.md)'s efficient Claude Commands plan mode
+- **Development monitoring** - Inspired by [@mitsuhiko](https://github.com/mitsuhiko)'s development workflow approach for unified logging
+
 ## 📄 License
 
 MIT License - See LICENSE file for details.
