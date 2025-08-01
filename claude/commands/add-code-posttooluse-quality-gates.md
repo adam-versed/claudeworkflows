@@ -2,34 +2,44 @@
 
 Setup PostToolUse hooks that automatically run quality validation (lint, typecheck, build) after code modifications.
 
-## Behavior
+## Required Workflow
 
-1. **Detect Platform**: Identify operating system (Mac/Linux vs Windows) for shell command generation
-2. **Detect Project Type**: Identify package manager and project structure
-3. **Analyze Scripts**: Examine existing quality gate scripts in project configuration
-4. **Create Hook Configuration**: Generate cross-platform PostToolUse hooks for automatic validation
-5. **Target File Patterns**: Apply hooks to relevant source files based on project type
+**YOU MUST follow these steps in order:**
 
-## Implementation Process
+1. **Check for existing settings**: Read `.claude/settings.local.json` if it exists. If PostToolUse hooks already reference quality commands or scripts, report this and exit without making changes.
 
-1. **Platform Detection**: Identify operating system for appropriate shell syntax
-2. **Project Environment Detection**: Identify package manager and build tools
-   - Node.js: package.json (npm, yarn, pnpm, bun)
-   - Rust: Cargo.toml
-   - Python: pyproject.toml, setup.py
-   - Go: go.mod
-3. **Quality Script Analysis**: Check for existing lint, typecheck, and build commands
-4. **Missing Script Setup**: Add quality scripts if they don't exist
-5. **Hook Generation**: Create `.claude/settings.local.json` with platform-specific PostToolUse hooks
-6. **Configuration Report**: Confirm successful setup with hook details and restart requirement
+2. **Detect the platform**: Use system information to determine Mac/Linux vs Windows for correct shell syntax.
 
+3. **Identify project type and discover actual commands**:
 
-## Important Notes
+   - For Node.js projects (has package.json): Parse the scripts section and extract actual script names (NOT hardcoded assumptions)
+   - For Rust projects (has Cargo.toml): Check for workspace commands
+   - For Python projects (has pyproject.toml/setup.py): Check for defined scripts or Makefile targets
+   - For Go projects (has go.mod): Check for Makefile or standard commands
 
-- **Hook Visibility**: Echo messages are only visible when using Ctrl+R verbose mode
-- **Activation**: After adding hooks, you must exit and restart Claude Code for the new hooks to become active
-- **File Pattern Matching**: Uses shell conditionals (POSIX `case` for Mac/Linux, PowerShell regex for Windows) to check `$CLAUDE_TOOL_ARGS` for file extensions
-- **Cross-Platform Support**: Automatically detects platform and generates appropriate shell commands
+4. **Check for quality gate scripts**: Look for `.claude/scripts/run-quality-gates.sh` or similar. If found, prefer using this over individual commands.
+
+5. **Analyze discovered commands for redundancy**:
+
+   - If a quality script exists that already runs multiple checks, use only that
+   - If commands overlap (e.g., both `check` and `lint` where `check` includes linting), use only the comprehensive one
+   - NEVER generate hooks for commands that don't exist in the project
+
+6. **Generate hooks using discovered commands**:
+
+   - Use the actual command names found in step 3
+   - If no quality commands exist, report this and suggest what could be added
+   - Merge with existing PostToolUse entries if they exist (don't create duplicate blocks)
+
+7. **Report what was done**: List discovered commands, what hooks were created, and what was skipped due to existing configuration.
+
+## Critical Rules
+
+- **NEVER assume command names**: Do not assume `npm run lint`, `ruff check`, etc. exist. Always discover actual commands.
+- **NEVER create duplicate hooks**: If PostToolUse already has quality checks, exit with a report.
+- **NEVER add commands that don't exist**: Only create hooks for commands found in project configuration.
+- **ALWAYS prefer consolidated scripts**: If `.claude/scripts/run-quality-gates.sh` exists, use it instead of individual commands.
+- **ALWAYS check for command overlap**: Don't run both `npm run check` and `npm run lint` if `check` already includes linting.
 
 ## Example Usage
 
@@ -37,17 +47,32 @@ Setup PostToolUse hooks that automatically run quality validation (lint, typeche
 # Setup quality gates for current project
 /add-code-posttooluse-quality-gates
 
-# The command will auto-detect project type and configure appropriate hooks
+# The command will:
+# 1. Analyze your project to find actual quality commands
+# 2. Check for existing hooks to avoid duplication
+# 3. Generate hooks only for commands that exist
 ```
 
+## Example Behaviors
 
-## Generated Configuration
+### Scenario 1: Fresh project with package.json
 
-Quality gate commands vary by project type and available tools.
+**Discovery phase output:**
 
-### For TypeScript/JavaScript Projects:
+```
+Analyzing project configuration...
+✓ Found package.json
+✓ Discovered scripts:
+  - check: "biome check ."
+  - typecheck: "tsc --noEmit"
+✓ No existing quality gate hooks found
+✓ No .claude/scripts/run-quality-gates.sh found
 
-**Mac/Linux:**
+Creating PostToolUse hook with discovered commands...
+```
+
+**Generated hook uses discovered commands:**
+
 ```json
 {
   "hooks": {
@@ -57,7 +82,7 @@ Quality gate commands vary by project type and available tools.
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.ts|*.tsx|*.js|*.jsx) echo \"✅ [HOOK TRIGGERED] Running quality gates after file edit...\" && npm run lint && npm run typecheck && npm run build ;; esac'"
+            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.ts|*.tsx|*.js|*.jsx) echo \"✅ [HOOK TRIGGERED] Running discovered quality gates: check, typecheck\" && npm run check && npm run typecheck ;; esac'"
           }
         ]
       }
@@ -66,103 +91,30 @@ Quality gate commands vary by project type and available tools.
 }
 ```
 
-**Windows:**
+### Scenario 2: Dynamic command generation
+
+**How echo messages should reflect discovered commands:**
+
+If discovered: `validate: "eslint . && tsc"` and `test: "jest"`
+
+Generated hook would be:
+
 ```json
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -Command \"if ($env:CLAUDE_TOOL_ARGS -match '\\.(ts|tsx|js|jsx)$') { Write-Host '✅ [HOOK TRIGGERED] Running quality gates after file edit...'; npm run lint; npm run typecheck; npm run build }\""
-          }
-        ]
-      }
-    ]
-  }
+  "type": "command",
+  "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.ts|*.tsx|*.js|*.jsx) echo \"✅ [HOOK TRIGGERED] Running discovered quality gates: validate, test\" && npm run validate && npm run test ;; esac'"
 }
 ```
 
-### For Python Projects:
+If using quality script:
 
-**Mac/Linux:**
 ```json
 {
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.py) echo \"✅ [HOOK TRIGGERED] Running quality gates after file edit...\" && ruff check && mypy . && python -m build ;; esac'"
-          }
-        ]
-      }
-    ]
-  }
+  "type": "command",
+  "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.ts|*.tsx|*.js|*.jsx) echo \"✅ [HOOK TRIGGERED] Running quality gate script\" && bash .claude/scripts/run-quality-gates.sh ;; esac'"
 }
 ```
 
-**Windows:**
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -Command \"if ($env:CLAUDE_TOOL_ARGS -match '\\.py$') { Write-Host '✅ [HOOK TRIGGERED] Running quality gates after file edit...'; ruff check; mypy .; python -m build }\""
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### For Rust Projects:
-
-**Mac/Linux:**
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *.rs) echo \"✅ [HOOK TRIGGERED] Running quality gates after file edit...\" && cargo clippy && cargo check && cargo build ;; esac'"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-**Windows:**
-```json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -Command \"if ($env:CLAUDE_TOOL_ARGS -match '\\.rs$') { Write-Host '✅ [HOOK TRIGGERED] Running quality gates after file edit...'; cargo clippy; cargo check; cargo build }\""
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+**Key point**: The echo message MUST indicate what was actually discovered and will be run, not hardcoded command names.
 
 $ARGUMENTS

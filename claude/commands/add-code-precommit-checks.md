@@ -1,131 +1,106 @@
-# Pre-Commit Rules
+# Pre-Commit Checks
 
-Setup PreToolUse hooks that enforce quality standards by preventing commits containing code violations.
+Setup pre-commit framework to enforce quality standards by preventing commits containing code violations.
 
-## Behavior
+## Required Workflow
 
-1. **Detect Platform**: Identify operating system (Mac/Linux vs Windows) for shell command generation
-2. **Intercept Commits**: Catch git commit operations before execution
-3. **Scan Staged Files**: Check all staged files for quality violations
-4. **Block Violations**: Prevent commits containing rule violations with detailed error messages
-5. **Enforce Standards**: Maintain code quality by preventing workarounds and disabled checks
+**YOU MUST follow these steps in order:**
 
-## Implementation Process
+1. **Check git repository**: Verify this is a git repository (required for git hooks)
 
-1. **Platform Detection**: Identify operating system for appropriate shell syntax
-2. **Detect Python**: Find available Python command (python3, python, or py) with platform-specific detection
-3. **Setup Directory Structure**: Create `.claude/scripts/` if it doesn't exist
-4. **Copy Validation Script**: Install pre-commit-rules.py to project's scripts directory
-5. **Configure Permissions**: Make validation script executable (Unix-like systems)
-6. **Generate Hook**: Add cross-platform PreToolUse hook to `.claude/settings.local.json`
-7. **Confirm Setup**: Report successful configuration with Python command used and restart requirement
+2. **Check existing setup**:
 
-## Hook Templates
+   - Look for `.pre-commit-config.yaml` in project root
+   - Check if pre-commit is already installed in the git repo
+   - If already configured, report and exit
 
-PreToolUse hooks that trigger before git commit operations to validate staged files.
+3. **Install pre-commit**:
 
-### Mac/Linux (using sh):
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh -c 'case \"$CLAUDE_TOOL_ARGS\" in *git*commit*) echo \"✅ [HOOK TRIGGERED] Running pre-commit checks\" && [PYTHON_COMMAND] .claude/scripts/pre-commit-rules.py ;; esac'"
-          }
-        ]
-      }
-    ]
-  }
-}
+   - Check if pre-commit is available globally
+   - If not, install it using pip/pipx/brew based on what's available
+   - Report installation method used
+
+4. **Analyze project and generate config**:
+
+   - Detect project languages and frameworks
+   - Select appropriate pre-commit hooks based on project type
+   - Create `.pre-commit-config.yaml` with relevant hooks
+
+5. **Install git hooks**:
+
+   - Run `pre-commit install` to set up git hooks
+   - This makes pre-commit run automatically on `git commit`
+
+6. **Report completion**:
+   - List what hooks were configured
+   - Confirm pre-commit is active
+
+## Critical Rules
+
+- **NEVER assume specific tools**: Detect what's actually used in the project
+- **NEVER overwrite existing config**: If `.pre-commit-config.yaml` exists, report and exit
+- **ALWAYS verify git repository**: Pre-commit requires a git repo to function
+- **ALWAYS use appropriate hooks**: Match hooks to detected languages/tools
+
+## TypeScript/JavaScript Config Template
+
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+      - id: check-merge-conflict
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [javascript, typescript, jsx, tsx, json, css]
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        files: \.(js|jsx|ts|tsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@8.56.0
+          - typescript
 ```
 
-### Windows (using PowerShell):
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -Command \"if ($env:CLAUDE_TOOL_ARGS -match 'git.*commit') { Write-Host '✅ [HOOK TRIGGERED] Running pre-commit checks'; [PYTHON_COMMAND] .claude/scripts/pre-commit-rules.py }\""
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+## Python Config Template
 
-## Important Notes
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-ast
+      - id: check-docstring-first
+      - id: check-yaml
 
-- **Hook Visibility**: Echo messages are only visible when using Ctrl+R verbose mode
-- **Activation**: After adding hooks, you must exit and restart Claude Code for the new hooks to become active
-- **Git Command Matching**: Uses shell conditionals (POSIX `case` for Mac/Linux, PowerShell regex for Windows) to detect git commit commands in `$CLAUDE_TOOL_ARGS`
-- **Cross-Platform Support**: Automatically detects platform and generates appropriate shell commands
-- **Python Detection**: Identifies correct Python executable for each platform (python3/python on Unix, py on Windows)
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
 
-## Quality Rules Enforced
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix]
 
-### Linting Violations
-
-- **Disabled Linting**: Prevents `// eslint-disable` or similar comments
-- **Config Bypasses**: Blocks modifications to lint configs that ignore errors
-
-### Type Safety Violations
-
-- **Type Ignores**: Prevents `// @ts-ignore` comments
-- **Any Types**: Blocks `as any` type assertions
-- **Config Weakening**: Prevents reducing tsconfig.json strictness
-
-### Test Violations
-
-- **Skipped Tests**: Prevents `.skip()` or `.todo()` on failing tests
-- **Test Exclusions**: Blocks config changes that exclude failing tests
-- **No-Test Flags**: Prevents `--passWithNoTests` usage
-
-### Build Violations
-
-- **Build Failures**: Prevents ignoring build errors
-- **Config Bypasses**: Blocks build config changes that skip failures
-
-## Example Usage
-
-```bash
-# Add pre-commit quality checks to current project
-/add-code-precommit-checks
-
-# The hook will automatically detect Python and configure validation
-```
-
-
-## Generated Configuration
-
-The validation script provides comprehensive checking across multiple languages.
-
-### Script Features:
-
-- Line-by-line analysis of staged files
-- Multi-language support (JavaScript, TypeScript, Python, etc.)
-- Clear violation reporting with file:line references
-- Configuration change warnings
-- Extensible rule architecture
-
-### Example Output:
-
-```
-Quality Gate Violations Found:
-
-src/app.ts:45 - Found '// @ts-ignore' comment
-src/utils.js:23 - Found 'eslint-disable' directive
-tests/api.test.ts:89 - Found '.skip()' on test
-
-Commit blocked. Fix violations before committing.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
 ```
 
 $ARGUMENTS
