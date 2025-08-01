@@ -12,10 +12,29 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
 
 1. **Execute automated security scripts** - Run comprehensive OWASP Top 10 vulnerability detection
 
+   **FIRST - Resolve SCRIPT_PATH:**
+
+   1. **Try project-level .claude folder**:
+
+      ```bash
+      Glob: ".claude/scripts/analyze/security/*.py"
+      ```
+
+   2. **Try user-level .claude folder**:
+
+      ```bash
+      Bash: ls "$HOME/.claude/scripts/analyze/security/"
+      ```
+
+   3. **Interactive fallback if not found**:
+      - List searched locations: `.claude/scripts/analyze/security/` and `$HOME/.claude/scripts/analyze/security/`
+      - Ask user: "Could not locate security analysis scripts. Please provide full path to the scripts directory:"
+      - Validate provided path contains expected scripts (detect_secrets.py, scan_vulnerabilities.py, check_auth.py, validate_inputs.py)
+      - Set SCRIPT_PATH to user-provided location
+
+   **THEN - Execute with resolved SCRIPT_PATH:**
+
    ```bash
-   # Example execution format (LLM will determine actual paths):
-   # LLM must locate script installation directory dynamically using Glob tool
-   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
    python [SCRIPT_PATH]/detect_secrets.py . --output-format json
    python [SCRIPT_PATH]/scan_vulnerabilities.py . --output-format json
    python [SCRIPT_PATH]/check_auth.py . --output-format json

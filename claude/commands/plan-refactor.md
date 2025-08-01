@@ -8,9 +8,30 @@
 
 1. **Execute automated analysis** - Run comprehensive technical debt assessment
 
+   **FIRST - Resolve SCRIPT_PATH:**
+
+   1. **Try project-level .claude folder**:
+
+      ```bash
+      Glob: ".claude/scripts/*.py"
+      Glob: ".claude/scripts/analyze/**/*.py"
+      ```
+
+   2. **Try user-level .claude folder**:
+
+      ```bash
+      Bash: ls "$HOME/.claude/scripts/"
+      ```
+
+   3. **Interactive fallback if not found**:
+      - List searched locations: `.claude/scripts/` and `$HOME/.claude/scripts/`
+      - Ask user: "Could not locate analysis scripts. Please provide full path to the scripts directory:"
+      - Validate provided path contains expected scripts (run_all_analysis.py, complexity_metrics.py, coupling_analysis.py, check_bottlenecks.py)
+      - Set SCRIPT_PATH to user-provided location
+
+   **THEN - Execute with resolved SCRIPT_PATH:**
+
    ```bash
-   # Note: LLM must locate script installation directory dynamically using Glob tool
-   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
    python [SCRIPT_PATH]/run_all_analysis.py . --output-format json
    python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
    python [SCRIPT_PATH]/coupling_analysis.py . --output-format json
@@ -49,9 +70,9 @@
 
 2. **Create testing strategy** - Establish baselines and regression coverage
 
+   **Use previously resolved SCRIPT_PATH:**
+
    ```bash
-   # Note: LLM must locate script installation directory dynamically using Glob tool
-   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
    python [SCRIPT_PATH]/test_coverage_analysis.py . --output-format json
    ```
 

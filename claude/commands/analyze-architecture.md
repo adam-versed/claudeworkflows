@@ -10,22 +10,33 @@ Comprehensive system architecture evaluation combining automated analysis with d
 
 Execute architecture analysis scripts via Bash tool for measurable design metrics:
 
-**Note**: LLM must locate the script installation directory dynamically using Glob tool to find script paths, then execute with correct absolute paths.
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/analyze/architecture/*.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/analyze/architecture/"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/analyze/architecture/` and `$HOME/.claude/scripts/analyze/architecture/`
+   - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py)
+   - Set SCRIPT_PATH to user-provided location
+
+**THEN - Execute with resolved SCRIPT_PATH:**
 
 ```bash
-# Example execution format (LLM will determine actual paths):
-# LLM must locate script installation directory dynamically using Glob tool
-# Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
 python [SCRIPT_PATH]/pattern_evaluation.py . --output-format json
 python [SCRIPT_PATH]/scalability_check.py . --output-format json
 python [SCRIPT_PATH]/coupling_analysis.py . --output-format json
 ```
-
-**Script Location Process:**
-
-1. Use Glob tool to find script paths: `**/scripts/analyze/architecture/*.py`
-2. Verify script availability and determine correct absolute paths
-3. Execute scripts with resolved paths
 
 ### Architecture Assessment Areas
 

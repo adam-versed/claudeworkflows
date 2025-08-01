@@ -10,22 +10,33 @@ Comprehensive performance analysis combining automated script analysis with live
 
 Execute performance analysis scripts via Bash tool for measurable bottleneck detection:
 
-**Note**: LLM must locate the script installation directory dynamically using Glob tool to find script paths, then execute with correct absolute paths.
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/analyze/performance/*.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/analyze/performance/"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/analyze/performance/` and `$HOME/.claude/scripts/analyze/performance/`
+   - Ask user: "Could not locate performance analysis scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (check_bottlenecks.py, analyze_frontend.py, profile_database.py)
+   - Set SCRIPT_PATH to user-provided location
+
+**THEN - Execute with resolved SCRIPT_PATH:**
 
 ```bash
-# Example execution format (LLM will determine actual paths):
-# LLM must locate script installation directory dynamically using Glob tool
-# Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
 python [SCRIPT_PATH]/check_bottlenecks.py . --output-format json
 python [SCRIPT_PATH]/analyze_frontend.py . --output-format json
 python [SCRIPT_PATH]/profile_database.py . --output-format json
 ```
-
-**Script Location Process:**
-
-1. Use Glob tool to find script paths: `**/scripts/analyze/performance/*.py`
-2. Verify script availability and determine correct absolute paths
-3. Execute scripts with resolved paths
 
 ### Performance Assessment Areas
 

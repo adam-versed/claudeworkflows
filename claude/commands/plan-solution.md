@@ -35,10 +35,29 @@ Please provide your technical challenge and any relevant constraints, or confirm
 
 1. **Run architecture analysis**:
 
+   **FIRST - Resolve SCRIPT_PATH:**
+
+   1. **Try project-level .claude folder**:
+
+      ```bash
+      Glob: ".claude/scripts/analyze/architecture/*.py"
+      ```
+
+   2. **Try user-level .claude folder**:
+
+      ```bash
+      Bash: ls "$HOME/.claude/scripts/analyze/architecture/"
+      ```
+
+   3. **Interactive fallback if not found**:
+      - List searched locations: `.claude/scripts/analyze/architecture/` and `$HOME/.claude/scripts/analyze/architecture/`
+      - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
+      - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py)
+      - Set SCRIPT_PATH to user-provided location
+
+   **THEN - Execute with resolved SCRIPT_PATH:**
+
    ```bash
-   # Find scripts dynamically
-   # Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
-   glob **/scripts/analyze/architecture/*.py
    python [SCRIPT_PATH]/pattern_evaluation.py .
    python [SCRIPT_PATH]/scalability_check.py .
    python [SCRIPT_PATH]/coupling_analysis.py .

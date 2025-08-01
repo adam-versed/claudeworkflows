@@ -19,21 +19,32 @@ Comprehensive code quality analysis combining automated metrics with architectur
 
 Execute code quality analysis scripts via Bash tool for measurable quality metrics:
 
-**Note**: LLM must locate the script installation directory dynamically using Glob tool to find script paths, then execute with correct absolute paths.
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/analyze/code_quality/*.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/analyze/code_quality/"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/analyze/code_quality/` and `$HOME/.claude/scripts/analyze/code_quality/`
+   - Ask user: "Could not locate code_quality analysis scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (complexity_lizard.py, complexity_metrics.py)
+   - Set SCRIPT_PATH to user-provided location
+
+**THEN - Execute with resolved SCRIPT_PATH:**
 
 ```bash
-# Example execution format (LLM will determine actual paths):
-# LLM must locate script installation directory dynamically using Glob tool
-# Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
 python [SCRIPT_PATH]/complexity_lizard.py . --output-format json
 python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
 ```
-
-**Script Location Process:**
-
-1. Use Glob tool to find script paths: `**/scripts/analyze/code_quality/*.py`
-2. Verify script availability and determine correct absolute paths
-3. Execute scripts with resolved paths
 
 ## Optional Flags
 

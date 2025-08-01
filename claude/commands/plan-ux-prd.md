@@ -32,11 +32,29 @@ You are an expert product manager and UX/UI specialist with deep expertise in cr
 
 4. **Generate PRD Structure**
 
-   Use PRD generator script with collected data:
+   **FIRST - Resolve SCRIPT_PATH:**
+
+   1. **Try project-level .claude folder**:
+
+      ```bash
+      Glob: ".claude/scripts/plan/generate_prd.py"
+      ```
+
+   2. **Try user-level .claude folder**:
+
+      ```bash
+      Bash: ls "$HOME/.claude/scripts/plan/generate_prd.py"
+      ```
+
+   3. **Interactive fallback if not found**:
+      - List searched locations: `.claude/scripts/plan/` and `$HOME/.claude/scripts/plan/`
+      - Ask user: "Could not locate PRD generation script. Please provide full path to generate_prd.py:"
+      - Validate provided path exists and is executable
+      - Set SCRIPT_PATH to user-provided location
+
+   **THEN - Execute with resolved SCRIPT_PATH:**
 
    ```bash
-   # Note: LLM must locate script installation directory dynamically using Glob tool
-   # Example execution format (LLM will determine actual paths):
    python [SCRIPT_PATH]/generate_prd.py [product_data.json] --output-format markdown
    ```
 

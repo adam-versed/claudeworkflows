@@ -28,23 +28,34 @@ Comprehensive root cause analysis combining automated investigation tools with s
 
 Execute root cause analysis scripts via Bash tool for systematic investigation:
 
-**Note**: LLM must locate the script installation directory dynamically using Glob tool to find script paths, then execute with correct absolute paths.
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/analyze/root_cause/*.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/analyze/root_cause/"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/analyze/root_cause/` and `$HOME/.claude/scripts/analyze/root_cause/`
+   - Ask user: "Could not locate root cause analysis scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (trace_execution.py, recent_changes.py, error_patterns.py, simple_trace.py)
+   - Set SCRIPT_PATH to user-provided location
+
+**THEN - Execute with resolved SCRIPT_PATH:**
 
 ```bash
-# Example execution format (LLM will determine actual paths):
-# LLM must locate script installation directory dynamically using Glob tool
-# Scripts may be in project-level .claude/ or user-level ~/.claude/ directories
 python [SCRIPT_PATH]/trace_execution.py . --output-format json
 python [SCRIPT_PATH]/recent_changes.py . --output-format json
 python [SCRIPT_PATH]/error_patterns.py . --output-format json
 python [SCRIPT_PATH]/simple_trace.py . --output-format json
 ```
-
-**Script Location Process:**
-
-1. Use Glob tool to find script paths: `**/scripts/analyze/root_cause/*.py`
-2. Verify script availability and determine correct absolute paths
-3. Execute scripts with resolved paths
 
 ## Optional Flags
 
