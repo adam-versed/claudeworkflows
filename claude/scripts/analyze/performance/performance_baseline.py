@@ -6,13 +6,12 @@ Establishes performance benchmarks before refactoring for comparison validation.
 
 import os
 import sys
-import re
 import json
 import time
 import psutil
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple, Optional
+from typing import Dict, List, Any
 from collections import defaultdict
 
 # Add utils to path for cross-platform and output_formatter imports
@@ -221,7 +220,7 @@ class PerformanceBaseliner:
             if lang not in self.perf_commands:
                 continue
                 
-            lang_config = self.perf_commands[lang]
+            self.perf_commands[lang]
             build_results = {}
             
             # Try common build commands for each language

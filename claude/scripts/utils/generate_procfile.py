@@ -4,7 +4,6 @@ Procfile generator for development monitoring.
 Creates Procfile with component-specific service definitions based on LLM analysis.
 """
 
-import os
 import sys
 import argparse
 import json
@@ -178,8 +177,8 @@ def main():
         if args.include_watcher and watch_patterns:
             print(f"Included file watcher for {len(watch_patterns)} patterns")
         
-        print(f"\nUsage:")
-        print(f"  foreman start              # Start all services")
+        print("\nUsage:")
+        print("  foreman start              # Start all services")
         print(f"  shoreman {args.output_file}   # Alternative process manager")
         
         return 0

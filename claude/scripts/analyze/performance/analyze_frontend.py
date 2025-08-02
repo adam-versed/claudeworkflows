@@ -10,7 +10,7 @@ import re
 import json
 import time
 from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple
+from typing import Dict, List, Any
 from collections import defaultdict
 
 # Add utils to path for cross-platform and output_formatter imports

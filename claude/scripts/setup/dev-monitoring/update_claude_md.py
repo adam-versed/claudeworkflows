@@ -26,9 +26,7 @@ def get_claude_md_content(components: List[Dict[str, Any]]) -> str:
             service_labels.append(f"`[{label}]`")
 
     # Format service labels for display
-    (
-        ", ".join(service_labels) if service_labels else "`[WEB]`, `[API]`, `[BACKEND]`"
-    )
+    (", ".join(service_labels) if service_labels else "`[WEB]`, `[API]`, `[BACKEND]`")
 
     content = """## Development Workflow Commands (Make-based)
 

@@ -10,9 +10,8 @@ import re
 import json
 import ast
 import time
-from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple, Optional
-from collections import defaultdict, Counter
+from typing import Dict, List, Any
+from collections import defaultdict
 
 # Add utils to path for cross-platform and output_formatter imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'utils'))

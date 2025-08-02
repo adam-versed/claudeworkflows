@@ -4,18 +4,17 @@ Code complexity analysis using Lizard - a multi-language complexity analyzer.
 Supports: C/C++/C#, Java, JavaScript, Python, Ruby, PHP, Swift, Go, Rust, TypeScript, etc.
 """
 
-import json
 import sys
 import subprocess
 import time
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 # Add utils to path
 script_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(script_dir / "utils"))
 
-from output_formatter import ResultFormatter, Severity
+from output_formatter import ResultFormatter
 
 class LizardComplexityAnalyzer:
     """Wrapper around Lizard for code complexity analysis."""
@@ -112,7 +111,6 @@ class LizardComplexityAnalyzer:
                 if not match:
                     continue
                     
-                func_name = match.group(1)
                 start_line = int(match.group(2))
                 end_line = int(match.group(3))
                 filepath = match.group(4)
@@ -195,7 +193,7 @@ class LizardComplexityAnalyzer:
                             ccn_severity,
                             file_path,
                             line_num,
-                            f"Consider breaking down this function. Aim for complexity < 10",
+                            "Consider breaking down this function. Aim for complexity < 10",
                             {
                                 "function_name": func_name,
                                 "cyclomatic_complexity": ccn,
@@ -216,7 +214,7 @@ class LizardComplexityAnalyzer:
                             length_severity,
                             file_path,
                             line_num,
-                            f"Consider breaking down this function. Aim for < 50 lines",
+                            "Consider breaking down this function. Aim for < 50 lines",
                             {
                                 "function_name": func_name,
                                 "lines_of_code": length,
@@ -236,7 +234,7 @@ class LizardComplexityAnalyzer:
                             param_severity,
                             file_path,
                             line_num,
-                            f"Consider using parameter objects or configuration classes",
+                            "Consider using parameter objects or configuration classes",
                             {
                                 "function_name": func_name,
                                 "parameter_count": params

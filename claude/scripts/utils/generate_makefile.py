@@ -4,7 +4,6 @@ Makefile generator for development monitoring.
 Creates Makefile with component-specific targets based on LLM analysis.
 """
 
-import os
 import sys
 import argparse
 import json

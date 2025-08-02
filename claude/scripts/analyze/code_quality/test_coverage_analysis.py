@@ -11,7 +11,7 @@ import json
 import time
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple, Optional
+from typing import Dict, List, Any
 from collections import defaultdict
 
 # Add utils to path for cross-platform and output_formatter imports
@@ -439,7 +439,7 @@ class TestCoverageAnalyzer:
                 'detected_tools': detected_tools
             })
             
-            execution_time = time.time() - start_time
+            time.time() - start_time
             
             result = self.formatter.create_code_quality_result("test_coverage_analysis.py", target_path)
             for finding in findings:
