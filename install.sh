@@ -550,7 +550,7 @@ EOF
 
     if command -v claude &> /dev/null; then
         # Check our MCP servers
-        local our_mcp_servers=("sequential-thinking" "context7")
+        local our_mcp_servers=("sequential-thinking" "grep")
         for server in "${our_mcp_servers[@]}"; do
             if claude mcp list 2>/dev/null | grep -q "^$server"; then
                 echo "$server" >> "$log_file"
@@ -674,7 +674,7 @@ install_mcp_tools() {
     log "Installing MCP tools..."
 
     if [[ "$DRY_RUN" == "true" ]]; then
-        log "Would install MCP tools: sequential-thinking, context7"
+        log "Would install MCP tools: sequential-thinking, grep"
         return 0
     fi
 
@@ -693,23 +693,23 @@ install_mcp_tools() {
         mcp_failed=true
     fi
 
-    # Install context7
-    log_verbose "Installing context7 MCP tool..."
-    if claude mcp list 2>/dev/null | grep -q "context7"; then
-        log_verbose "context7 already installed, skipping"
-        update_installation_log "mcp" "context7"
-    elif claude mcp add context7 -s user -- npx -y @modelcontextprotocol/server-context7 2>/dev/null; then
-        log_verbose "context7 installed successfully"
-        update_installation_log "mcp" "context7"
+    # Install grep
+    log_verbose "Installing grep MCP tool..."
+    if claude mcp list 2>/dev/null | grep -q "grep"; then
+        log_verbose "grep already installed, skipping"
+        update_installation_log "mcp" "grep"
+    elif claude mcp add --transport http grep https://mcp.grep.app 2>/dev/null; then
+        log_verbose "grep installed successfully"
+        update_installation_log "mcp" "grep"
     else
-        log_error "Failed to install context7 MCP tool"
+        log_error "Failed to install grep MCP tool"
         mcp_failed=true
     fi
 
     if [[ "$mcp_failed" == "true" ]]; then
         log "Some MCP tools failed to install. You can install them manually later using:"
         echo "  claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking"
-        echo "  claude mcp add context7 -s user -- npx -y @modelcontextprotocol/server-context7"
+        echo "  claude mcp add --transport http grep https://mcp.grep.app"
     else
         log "MCP tools installed successfully"
     fi
@@ -760,14 +760,6 @@ verify_installation() {
             fi
         done
 
-        # Test that rule files exist
-        local required_rule_files=("rules/prototype.md" "rules/tdd.md")
-        for rule_file in "${required_rule_files[@]}"; do
-            if [[ ! -f "$INSTALL_DIR/$rule_file" ]]; then
-                log_error "Required rule file missing: $INSTALL_DIR/$rule_file"
-                exit 1
-            fi
-        done
 
         # Verify custom commands preservation if in merge mode
         if [[ "${MERGE_MODE:-false}" == "true" ]]; then
@@ -818,7 +810,7 @@ show_completion() {
     if [[ "$SKIP_MCP" != "true" ]]; then
         echo "MCP Tools available:"
         echo "  --seq (sequential thinking for complex analysis)"
-        echo "  --c7  (context7 for framework documentation)"
+        echo "  --gitgrep (grep for GitHub repository search)"
         echo ""
     fi
 

@@ -68,11 +68,6 @@ python [SCRIPT_PATH]/recent_changes.py . --output-format json
 python [SCRIPT_PATH]/error_patterns.py . --output-format json
 ```
 
-## Optional Flags
-
---seq: Use for difficult bugs requiring systematic investigation - creates a structured approach: 'reproduce bug consistently', 'isolate variables', 'analyze root cause', 'implement targeted fix', 'verify solution and prevent regression'
---c7: Use to find debugging techniques and tools specific to your technology (e.g., Chrome DevTools for React, pdb strategies for Python, gdb for C/C++, Node.js inspector)
-
 ## Quality Gates
 
 - **Diagnosis Gate**: Reproducible bug with identified root cause

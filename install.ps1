@@ -338,26 +338,36 @@ function Install-McpTools {
     try {
         # Install sequential-thinking MCP server
         Write-Output "Installing sequential-thinking MCP server..."
-        & claude mcp install sequential-thinking
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-ColorOutput "[OK] sequential-thinking MCP server installed" -Color $Colors.Green
-            Write-Log "sequential-thinking MCP server installed successfully"
+        $mcpListOutput = & claude mcp list 2>$null
+        if ($mcpListOutput -match "sequential-thinking") {
+            Write-ColorOutput "[INFO] sequential-thinking already installed, skipping" -Color $Colors.Yellow
+            Write-Log "sequential-thinking already installed, skipping"
         } else {
-            Write-ColorOutput "[WARNING] Failed to install sequential-thinking MCP server" -Color $Colors.Yellow
-            Write-Log "Failed to install sequential-thinking MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+            & claude mcp add sequential-thinking -s user -- npx -y "@modelcontextprotocol/server-sequential-thinking" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-ColorOutput "[OK] sequential-thinking MCP server installed" -Color $Colors.Green
+                Write-Log "sequential-thinking MCP server installed successfully"
+            } else {
+                Write-ColorOutput "[WARNING] Failed to install sequential-thinking MCP server" -Color $Colors.Yellow
+                Write-Log "Failed to install sequential-thinking MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+            }
         }
 
-        # Install context7 MCP server
-        Write-Output "Installing context7 MCP server..."
-        & claude mcp install context7
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-ColorOutput "[OK] context7 MCP server installed" -Color $Colors.Green
-            Write-Log "context7 MCP server installed successfully"
+        # Install grep MCP server
+        Write-Output "Installing grep MCP server..."
+        $mcpListOutput = & claude mcp list 2>$null
+        if ($mcpListOutput -match "grep") {
+            Write-ColorOutput "[INFO] grep already installed, skipping" -Color $Colors.Yellow
+            Write-Log "grep already installed, skipping"
         } else {
-            Write-ColorOutput "[WARNING] Failed to install context7 MCP server" -Color $Colors.Yellow
-            Write-Log "Failed to install context7 MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+            & claude mcp add --transport http grep https://mcp.grep.app 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-ColorOutput "[OK] grep MCP server installed" -Color $Colors.Green
+                Write-Log "grep MCP server installed successfully"
+            } else {
+                Write-ColorOutput "[WARNING] Failed to install grep MCP server" -Color $Colors.Yellow
+                Write-Log "Failed to install grep MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+            }
         }
 
     } catch {
@@ -556,7 +566,7 @@ function Show-CompletionMessage {
     if (-not $SkipMcp) {
         Write-ColorOutput "MCP Tools configured:" -Color $Colors.Yellow
         Write-Output "  • sequential-thinking - Complex analysis workflows"
-        Write-Output "  • context7 - Framework documentation lookup"
+        Write-Output "  • grep - GitHub repository code search"
         Write-Output ""
     }
 

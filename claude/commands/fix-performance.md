@@ -76,11 +76,6 @@ python [SCRIPT_PATH]/analyze_frontend.py . --output-format json
 python [SCRIPT_PATH]/profile_database.py . --output-format json
 ```
 
-## Optional Flags
-
---c7: Use to discover proven optimization strategies for your specific bottleneck type and technology stack (e.g., React.memo patterns, database query optimization, caching strategies)
---seq: Use for complex performance fixes - creates structured approach: 'measure baseline performance', 'profile application', 'identify specific bottleneck', 'implement targeted optimization', 'validate improvement and monitor'
-
 ## Performance Areas
 
 Database, Frontend, Algorithms, Memory, Network, Caching

@@ -123,9 +123,7 @@ Please provide your technical challenge and any relevant constraints, or confirm
 
 ## Flags
 
-- `--c7`: Validate against current industry standards
 - `--critique`: Critique your reasoning around the user request, the solution options you select and the final recommendation
-- `--seq`: Systematic breakdown: analyze → research → compare → recommend → transfer
 
 ## Templates
 

@@ -100,20 +100,7 @@
 
 ## Enhanced Optional Flags
 
-**--c7**: Research proven refactoring patterns and migration strategies:
-
-- Legacy system modernization (strangler fig, anti-corruption layer)
-- Framework migrations (React, Angular, Vue upgrade paths)
-- Database refactoring (schema evolution, data migration)
-- Microservices extraction (domain boundaries, service splitting)
-- Performance optimization (caching strategies, query optimization)
-
-**--seq**: Structure complex refactoring into manageable phases:
-
-- Phase 1: 'Execute automated analysis and identify technical debt hotspots'
-- Phase 2: 'Research migration patterns and create strategy with Context7'
-- Phase 3: 'Plan implementation phases with safety nets and rollback procedures'
-- Phase 4: 'Generate comprehensive testing strategy and validation framework'
+None currently defined.
 
 ## Task Format for todos.md Transfer
 

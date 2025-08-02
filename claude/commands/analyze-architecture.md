@@ -54,11 +54,6 @@ python [SCRIPT_PATH]/coupling_analysis.py . --output-format json
 4. **Analyze coupling** between components and services
 5. **Generate recommendations** for architectural improvements
 
-## Optional Flags
-
---c7: Use when you need to validate your architecture decisions against current industry standards for your specific tech stack (e.g., microservices patterns for Node.js, serverless best practices for AWS)
---seq: Use when architecture analysis involves multiple concerns - breaks down into clear steps like 'analyze service boundaries', 'evaluate scalability bottlenecks', 'assess security architecture', 'review data flow patterns'
-
 ## Assessment Areas
 
 Coupling, Cohesion, Scalability, Maintainability, Testability, Deployment

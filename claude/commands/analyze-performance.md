@@ -54,11 +54,6 @@ python [SCRIPT_PATH]/profile_database.py . --output-format json
 4. **Prioritize optimizations** by impact and implementation effort
 5. **Generate recommendations** with before/after validation
 
-## Optional Flags
-
---c7: Use when you need proven optimization techniques for your specific stack (e.g., React rendering optimizations, Django ORM query patterns, database indexing strategies)
---seq: Use for complex performance issues requiring step-by-step investigation - breaks down into 'profile application', 'identify bottlenecks', 'analyze database queries', 'evaluate caching strategies', 'measure improvements'
-
 ## Performance Areas
 
 Database, Frontend, Algorithms, Memory, Network, Caching, Scalability

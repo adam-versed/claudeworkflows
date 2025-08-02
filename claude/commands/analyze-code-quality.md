@@ -46,11 +46,6 @@ python [SCRIPT_PATH]/complexity_lizard.py . --output-format json
 python [SCRIPT_PATH]/complexity_metrics.py . --output-format json
 ```
 
-## Optional Flags
-
---c7: Use when evaluating if specific code implementations follow current best practices for your framework/language (e.g., React hooks patterns, Python PEP standards, Go idiomatic code)
---seq: Use when code quality issues are complex or interconnected - breaks analysis into actionable steps like 'assess complexity metrics', 'check SOLID compliance', 'evaluate test coverage', 'identify refactoring opportunities'
-
 ## Output Requirements
 
 - Code quality metrics report with complexity analysis

@@ -59,8 +59,6 @@ python [SCRIPT_PATH]/simple_trace.py . --output-format json
 
 ## Optional Flags
 
---c7: Use when investigating framework-specific issues to understand common failure patterns and debugging approaches for your technology stack (e.g., React debugging tools, Python traceback analysis, Node.js memory leak detection)
---seq: Use for complex bugs where the cause isn't obvious - systematically breaks down investigation into 'reproduce issue', 'analyze error patterns', 'check recent changes', 'trace execution flow', 'identify root cause'
 --verbose: Use when you need detailed diagnostic output including comprehensive logging setup, distributed tracing configuration, and detailed error context capture for complex debugging scenarios
 
 ## Output Requirements

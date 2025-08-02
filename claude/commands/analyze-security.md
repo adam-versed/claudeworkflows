@@ -110,8 +110,6 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
 
 ## Enhanced Optional Flags
 
-**--c7**: Verify security implementations against current OWASP Top 10 guidelines and framework-specific security patterns
-**--seq**: Systematic breakdown: automate → assess → prioritize → transfer
 **--verbose**: Show detailed script outputs, gap analysis table, and comprehensive vulnerability descriptions
 
 ## Task Format for todos.md Transfer

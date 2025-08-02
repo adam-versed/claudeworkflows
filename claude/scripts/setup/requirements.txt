@@ -1,4 +1,4 @@
-# SuperCopilot Scriptable Workflows Dependencies
+# Claude Code Workflows Dependencies
 # Python 3.7+ required
 
 # Core dependencies
@@ -11,7 +11,7 @@ bandit>=1.7.0                  # Security linting
 safety>=2.0.0                  # Vulnerability scanning
 semgrep>=0.100.0               # Static analysis security scanner
 
-# Performance analysis  
+# Performance analysis
 psutil>=5.8.0                  # System and process utilities
 memory-profiler>=0.60.0        # Memory usage profiling
 py-spy>=0.3.0; platform_system != "Windows"  # Python profiler (Unix only)

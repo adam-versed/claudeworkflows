@@ -1,4 +1,4 @@
-#update_claude_md.py v0.3
+# update_claude_md.py v0.3
 """
 CLAUDE.md Update Script for Development Workflow Commands
 Adds or updates the Development Workflow Commands section in project CLAUDE.md
@@ -14,27 +14,31 @@ from typing import Dict, List, Any
 
 def get_claude_md_content(components: List[Dict[str, Any]]) -> str:
     """Generate the Development Workflow Commands section content."""
-    
+
     # Extract service labels from components for log documentation
     service_labels = []
     for component in components:
-        label = component.get('log_label', component.get('name', 'SERVICE'))
-        tech = component.get('technology', component.get('type', ''))
+        label = component.get("log_label", component.get("name", "SERVICE"))
+        tech = component.get("technology", component.get("type", ""))
         if tech:
             service_labels.append(f"`[{label}]` ({tech})")
         else:
             service_labels.append(f"`[{label}]`")
-    
-    # Format service labels for display
-    services_text = ", ".join(service_labels) if service_labels else "`[WEB]`, `[API]`, `[BACKEND]`"
-    
-    content = f"""## Development Workflow Commands (Make-based)
 
-**CRITICAL: Service Management Restrictions**
+    # Format service labels for display
+    (
+        ", ".join(service_labels) if service_labels else "`[WEB]`, `[API]`, `[BACKEND]`"
+    )
+
+    content = """## Development Workflow Commands (Make-based)
+
+**CRITICAL: Service Management Restrictions - NO EXCEPTIONS**
 
 - **NEVER run `make dev` or `make stop`** - These commands start/stop development services
 - **ALWAYS ask the user** to run these commands manually
 - **Claude can use**: `make tail-logs`, `make logs`, `make status`, `make health`, `make monitor`, `make clean`
+- **Never change, suppress or subvert a linting failure** - Address all linting errors immediately when found, even if unrelated to current task. No
+- **Never attempt to start, stop, or restart development services automatically.** - these commands are only available to the user.
 
 ### Available Commands
 
@@ -72,69 +76,73 @@ When debugging issues or understanding system state:
 3. **Monitor real-time logs**: `make tail-logs` (use Ctrl+C to exit)
 4. **Check service health**: `make health`
 5. **View system resources**: `make monitor`
-6. **Ask user to restart services**: "Please run `make dev` to start/restart development services"
+6. **Ask user to restart services**: "Please run `make dev` to start/restart development services"""
 
-**Never attempt to start, stop, or restart development services automatically.**"""
-    
     return content
 
 
 def find_existing_section(content: str) -> tuple:
     """Find existing Development Workflow Commands section."""
-    lines = content.split('\n')
+    lines = content.split("\n")
     start_idx = None
     end_idx = None
-    
+
     for i, line in enumerate(lines):
-        if '## Development Workflow Commands' in line:
+        if "## Development Workflow Commands" in line:
             start_idx = i
             # Find the end of this section (next ## header or end of file)
             for j in range(i + 1, len(lines)):
-                if lines[j].startswith('## ') and j != i:
+                if lines[j].startswith("## ") and j != i:
                     end_idx = j
                     break
             if end_idx is None:
                 end_idx = len(lines)
             break
-    
+
     return start_idx, end_idx
 
 
 def update_claude_md(project_dir: str, components: List[Dict[str, Any]]) -> bool:
     """Update or create CLAUDE.md with development workflow commands."""
-    
+
     claude_md_path = Path(project_dir) / "CLAUDE.md"
     new_section = get_claude_md_content(components)
-    
+
     if claude_md_path.exists():
         # Read existing content
-        with open(claude_md_path, 'r', encoding='utf-8') as f:
+        with open(claude_md_path, "r", encoding="utf-8") as f:
             existing_content = f.read()
-        
+
         # Check if our section already exists
         start_idx, end_idx = find_existing_section(existing_content)
-        
+
         if start_idx is not None:
             # Replace existing section
-            lines = existing_content.split('\n')
-            updated_lines = lines[:start_idx] + new_section.split('\n') + lines[end_idx:]
-            updated_content = '\n'.join(updated_lines)
-            print(f"✅ Updated existing Development Workflow Commands section in {claude_md_path}")
+            lines = existing_content.split("\n")
+            updated_lines = (
+                lines[:start_idx] + new_section.split("\n") + lines[end_idx:]
+            )
+            updated_content = "\n".join(updated_lines)
+            print(
+                f"✅ Updated existing Development Workflow Commands section in {claude_md_path}"
+            )
         else:
             # Append new section
             separator = "\n\n---\n\n" if existing_content.strip() else ""
             updated_content = existing_content + separator + new_section
-            print(f"✅ Added Development Workflow Commands section to existing {claude_md_path}")
-        
+            print(
+                f"✅ Added Development Workflow Commands section to existing {claude_md_path}"
+            )
+
         # Write updated content
-        with open(claude_md_path, 'w', encoding='utf-8') as f:
+        with open(claude_md_path, "w", encoding="utf-8") as f:
             f.write(updated_content)
     else:
         # Create new CLAUDE.md file
-        with open(claude_md_path, 'w', encoding='utf-8') as f:
+        with open(claude_md_path, "w", encoding="utf-8") as f:
             f.write(new_section)
         print(f"✅ Created new {claude_md_path} with Development Workflow Commands")
-    
+
     return True
 
 
@@ -142,19 +150,13 @@ def main():
     parser = argparse.ArgumentParser(
         description="Update project CLAUDE.md with development workflow commands"
     )
+    parser.add_argument("--project-dir", required=True, help="Project directory path")
     parser.add_argument(
-        "--project-dir",
-        required=True,
-        help="Project directory path"
+        "--components", required=True, help="JSON string of project components"
     )
-    parser.add_argument(
-        "--components",
-        required=True,
-        help="JSON string of project components"
-    )
-    
+
     args = parser.parse_args()
-    
+
     try:
         # Parse components JSON
         components = json.loads(args.components)
@@ -163,12 +165,12 @@ def main():
     except json.JSONDecodeError as e:
         print(f"❌ Error parsing components JSON: {e}")
         return 1
-    
+
     # Validate project directory
     if not os.path.isdir(args.project_dir):
         print(f"❌ Project directory not found: {args.project_dir}")
         return 1
-    
+
     try:
         success = update_claude_md(args.project_dir, components)
         if success:
