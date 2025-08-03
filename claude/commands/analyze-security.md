@@ -50,7 +50,7 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
 
 3. **Generate security baseline** - Compile automated results for contextual analysis
 
-**STOP** → "Automated security analysis complete. Proceed with gap assessment? (y/n)"
+**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Automated security analysis complete. Proceed with gap assessment? (y/n)" and WAIT for response before continuing to Phase 2. If user responds "n" or "no", stop workflow execution.
 
 ### Phase 2: Gap Assessment and Contextual Analysis
 
@@ -67,7 +67,7 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
    - Data flow security analysis between components and external interfaces
    - Infrastructure and deployment security review
 
-**STOP** → "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)"
+**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)" and WAIT for response before continuing to Phase 3. If user responds "n" or "no", stop workflow execution.
 
 ### Phase 3: Risk Prioritization and Reporting
 
@@ -104,9 +104,10 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
    - [ ] Security findings prioritized by business impact
 
 3. **Transfer security tasks to todos.md** - Generate actionable remediation tasks
+
    - Append formatted security findings with clear priorities to todos.md
 
-**STOP** → "Security analysis complete and validated. Transfer findings to todos.md? (y/n)"
+**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Security analysis complete and validated. Transfer findings to todos.md? (y/n)" and WAIT for response before proceeding with todo transfer. If user responds "n" or "no", stop workflow execution.
 
 ## Enhanced Optional Flags
 
