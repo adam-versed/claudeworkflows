@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
+
 def generate_makefile_header(components_info):
     """Generate Makefile header with project information."""
     return f"""# Development Monitoring Makefile
@@ -36,20 +37,22 @@ help:
 \t@echo "Component-specific targets:"
 """
 
+
 def generate_component_targets(components_info):
     """Generate component-specific make targets."""
     targets = []
-    
+
     for component in components_info:
-        name = component.get('name', 'unknown')
-        label = component.get('label', name.upper())
-        
-        targets.append(f"\t@echo \"  {name}-status  - Check {label} status\"")
-        targets.append(f"\t@echo \"  {name}-logs    - Show {label} logs\"")
-        if component.get('health_endpoint'):
-            targets.append(f"\t@echo \"  {name}-health  - Check {label} health\"")
-    
-    return '\n'.join(targets)
+        name = component.get("name", "unknown")
+        label = component.get("label", name.upper())
+
+        targets.append(f'\t@echo "  {name}-status  - Check {label} status"')
+        targets.append(f'\t@echo "  {name}-logs    - Show {label} logs"')
+        if component.get("health_endpoint"):
+            targets.append(f'\t@echo "  {name}-health  - Check {label} health"')
+
+    return "\n".join(targets)
+
 
 def generate_dev_target(components_info):
     """Generate the dev target for starting services using shoreman."""
@@ -70,8 +73,9 @@ dev:
 \t\texit 1; \\
 \tfi
 """
-    
+
     return content
+
 
 def generate_stop_target(components_info):
     """Generate the stop target for stopping services."""
@@ -79,26 +83,27 @@ def generate_stop_target(components_info):
 stop:
 \t@echo "Stopping development services..."
 """
-    
+
     # Add generic process killing based on common patterns
     kill_patterns = set()
     for component in components_info:
-        start_command = component.get('start_command', '')
-        if 'npm' in start_command or 'yarn' in start_command or 'pnpm' in start_command:
-            kill_patterns.add('node')
-        elif 'python' in start_command:
-            kill_patterns.add('python')
-        elif 'go run' in start_command:
-            kill_patterns.add('go')
-        elif 'cargo' in start_command:
-            kill_patterns.add('cargo')
-    
+        start_command = component.get("start_command", "")
+        if "npm" in start_command or "yarn" in start_command or "pnpm" in start_command:
+            kill_patterns.add("node")
+        elif "python" in start_command:
+            kill_patterns.add("python")
+        elif "go run" in start_command:
+            kill_patterns.add("go")
+        elif "cargo" in start_command:
+            kill_patterns.add("cargo")
+
     for pattern in kill_patterns:
         content += f"\t@pkill -f '{pattern}' 2>/dev/null || true\n"
-    
-    content += "\t@echo \"Services stopped.\"\n"
-    
+
+    content += '\t@echo "Services stopped."\n'
+
     return content
+
 
 def generate_status_targets(components_info):
     """Generate status checking targets."""
@@ -107,12 +112,12 @@ def generate_status_targets(components_info):
 status:
 \t@echo "=== Service Status ==="
 """
-    
+
     for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        port = component.get('port')
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+        port = component.get("port")
+
         if port:
             content += f"""
 \t@if curl -sf http://localhost:{port} >/dev/null 2>&1; then \\
@@ -127,19 +132,19 @@ status:
 \telse \\
 \t\techo "{label}: ✗ Process not found"; \\
 \tfi"""
-    
+
     # Add individual component status targets
     for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        port = component.get('port')
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+        port = component.get("port")
+
         content += f"""
 
 {name}-status:
 \t@echo "=== {label} Status ==="
 """
-        
+
         if port:
             content += f"""\t@if curl -sf http://localhost:{port} >/dev/null 2>&1; then \\
 \t\techo "{label}: ✓ Running (port {port})"; \\
@@ -152,8 +157,9 @@ status:
 \telse \\
 \t\techo "{label}: ✗ Process not found"; \\
 \tfi"""
-    
+
     return content
+
 
 def generate_log_targets(components_info):
     """Generate log monitoring targets."""
@@ -169,20 +175,21 @@ tail-logs:
 \t@pkill -f "tail -f.*dev.log" 2>/dev/null || true
 \t@if [ -f "./dev.log" ]; then tail -f ./dev.log; else echo "No ./dev.log found. Start services first."; fi
 """
-    
+
     # Add component-specific log targets
     for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+
         content += f"""
 
 {name}-logs:
 \t@echo "=== {label} Logs ==="
 \t@if [ -f "./dev.log" ]; then grep "\\[{label}\\]" ./dev.log | tail -50; else echo "No ./dev.log found"; fi
 """
-    
+
     return content
+
 
 def generate_health_targets(components_info):
     """Generate health check targets."""
@@ -191,27 +198,27 @@ def generate_health_targets(components_info):
 health:
 \t@echo "=== Health Check ==="
 """
-    
+
     for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        port = component.get('port')
-        health_endpoint = component.get('health_endpoint', '/health')
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+        port = component.get("port")
+        health_endpoint = component.get("health_endpoint", "/health")
+
         if port:
             content += f"""
 \t@curl -sf http://localhost:{port}{health_endpoint} 2>/dev/null && \\
 \t\techo "{label}: ✓ Healthy" || \\
 \t\techo "{label}: ✗ Unhealthy"
 """
-    
+
     # Add individual component health targets
     for component in components_info:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        port = component.get('port')
-        health_endpoint = component.get('health_endpoint', '/health')
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+        port = component.get("port")
+        health_endpoint = component.get("health_endpoint", "/health")
+
         if port:
             content += f"""
 
@@ -221,8 +228,9 @@ health:
 \t\techo "{label}: ✓ Healthy" || \\
 \t\techo "{label}: ✗ Unhealthy"
 """
-    
+
     return content
+
 
 def generate_utility_targets():
     """Generate utility targets for monitoring and cleanup."""
@@ -243,70 +251,78 @@ clean:
 \t@echo "Clean complete"
 """
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Generate Makefile for development monitoring")
-    parser.add_argument("--components", required=True, help="JSON string of component configurations")
-    parser.add_argument("--watch-patterns", help="JSON string of watch patterns (for future use)")
+    parser = argparse.ArgumentParser(
+        description="Generate Makefile for development monitoring"
+    )
+    parser.add_argument(
+        "--components", required=True, help="JSON string of component configurations"
+    )
+    parser.add_argument(
+        "--watch-patterns", help="JSON string of watch patterns (for future use)"
+    )
     parser.add_argument("--output-dir", default=".", help="Output directory")
     parser.add_argument("--output-file", default="Makefile", help="Output filename")
-    
+
     args = parser.parse_args()
-    
+
     try:
         components = json.loads(args.components)
     except json.JSONDecodeError as e:
         print(f"Error parsing components JSON: {e}")
         return 1
-    
+
     if not isinstance(components, list):
         print("Components must be a JSON array")
         return 1
-    
+
     # Generate Makefile content
     makefile_content = []
-    
+
     # Header
     makefile_content.append(generate_makefile_header(components))
-    
+
     # Component-specific help
     makefile_content.append(generate_component_targets(components))
-    
+
     # Dev target (USER ONLY)
     makefile_content.append(generate_dev_target(components))
-    
+
     # Stop target (USER ONLY)
     makefile_content.append(generate_stop_target(components))
-    
+
     # Status targets (Claude accessible)
     makefile_content.append(generate_status_targets(components))
-    
+
     # Log targets (Claude accessible)
     makefile_content.append(generate_log_targets(components))
-    
+
     # Health check targets (Claude accessible)
     makefile_content.append(generate_health_targets(components))
-    
+
     # Utility targets (Claude accessible)
     makefile_content.append(generate_utility_targets())
-    
+
     # Write Makefile
     output_path = Path(args.output_dir) / args.output_file
     try:
-        with open(output_path, 'w') as f:
-            f.write('\n'.join(makefile_content))
-        
+        with open(output_path, "w") as f:
+            f.write("\n".join(makefile_content))
+
         print(f"Generated Makefile: {output_path}")
         print(f"Components: {len(components)}")
         for component in components:
-            name = component.get('name', 'unknown')
-            label = component.get('label', name.upper())
+            name = component.get("name", "unknown")
+            label = component.get("label", name.upper())
             print(f"  - {name} ({label})")
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"Error writing Makefile: {e}")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

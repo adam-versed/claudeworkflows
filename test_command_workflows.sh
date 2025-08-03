@@ -23,12 +23,12 @@ TESTS_PASSED=0
 run_test() {
     local test_name="$1"
     local command="$2"
-    
+
     echo -e "${YELLOW}Testing: $test_name${NC}"
     echo "Command: $command"
-    
+
     TESTS_RUN=$((TESTS_RUN + 1))
-    
+
     if eval "$command" > /tmp/test_output.log 2>&1; then
         echo -e "${GREEN}✓ PASS${NC}"
         TESTS_PASSED=$((TESTS_PASSED + 1))

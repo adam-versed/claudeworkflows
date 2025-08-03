@@ -3,15 +3,16 @@
 ## Component Structure Standards
 
 ### TypeScript Interface Patterns
+
 ```tsx
 // Well-structured React component with TypeScript
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { User } from '@/types/user';
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { User } from "@/types/user";
 
 interface UserProfileProps {
   userId: string;
@@ -25,28 +26,29 @@ export function UserProfile({ userId, onUpdate, className }: UserProfileProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Implementation follows...
 }
 ```
 
 ### React Hooks Best Practices
+
 ```tsx
 // Fetch user data with proper error handling
 const fetchUser = useCallback(async () => {
   try {
     setIsLoading(true);
     setError(null);
-    
+
     const response = await fetch(`/api/users/${userId}`);
     if (!response.ok) {
-      throw new Error('Failed to fetch user');
+      throw new Error("Failed to fetch user");
     }
-    
+
     const data = await response.json();
     setUser(data);
   } catch (err) {
-    setError(err instanceof Error ? err.message : 'An error occurred');
+    setError(err instanceof Error ? err.message : "An error occurred");
     toast({
       title: "Error",
       description: "Failed to load user profile",
@@ -58,46 +60,50 @@ const fetchUser = useCallback(async () => {
 }, [userId, toast]);
 
 // Update user with optimistic updates
-const handleUpdate = useCallback(async (formData: FormData) => {
-  try {
-    const response = await fetch(`/api/users/${userId}`, {
-      method: 'PATCH',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to update user');
+const handleUpdate = useCallback(
+  async (formData: FormData) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      onUpdate?.(updatedUser);
+      setIsEditing(false);
+
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
     }
-    
-    const updatedUser = await response.json();
-    setUser(updatedUser);
-    onUpdate?.(updatedUser);
-    setIsEditing(false);
-    
-    toast({
-      title: "Success",
-      description: "Profile updated successfully",
-    });
-  } catch (err) {
-    toast({
-      title: "Error",
-      description: "Failed to update profile",
-      variant: "destructive",
-    });
-  }
-}, [userId, onUpdate, toast]);
+  },
+  [userId, onUpdate, toast],
+);
 
 // Memoized computed values
 const formattedDate = useMemo(() => {
-  if (!user?.createdAt) return '';
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+  if (!user?.createdAt) return "";
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
   }).format(new Date(user.createdAt));
 }, [user?.createdAt]);
 ```
 
 ### Component State Management
+
 ```tsx
 // Loading states with skeleton
 if (isLoading) {
@@ -140,6 +146,7 @@ if (!user) {
 ```
 
 ### Loading Skeletons
+
 ```tsx
 // Loading skeleton component
 function UserProfileSkeleton({ className }: { className?: string }) {
@@ -161,16 +168,17 @@ function UserProfileSkeleton({ className }: { className?: string }) {
 ## State Management with Zustand
 
 ### Store Structure
+
 ```typescript
-import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { create } from "zustand";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
 }
 
 interface AuthState {
@@ -178,7 +186,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  
+
   // Actions
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -194,26 +202,26 @@ export const useAuthStore = create<AuthState>()(
         user: null,
         isAuthenticated: false,
         isLoading: true,
-        
+
         // Actions with proper error handling
         login: async (email, password) => {
           try {
             set((state) => {
               state.isLoading = true;
             });
-            
-            const response = await fetch('/api/auth/login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+
+            const response = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email, password }),
             });
-            
+
             if (!response.ok) {
-              throw new Error('Login failed');
+              throw new Error("Login failed");
             }
-            
+
             const { user } = await response.json();
-            
+
             set((state) => {
               state.user = user;
               state.isAuthenticated = true;
@@ -226,30 +234,31 @@ export const useAuthStore = create<AuthState>()(
             throw error;
           }
         },
-        
+
         // Other actions...
       })),
       {
-        name: 'auth-storage',
+        name: "auth-storage",
         partialize: (state) => ({
           user: state.user,
           isAuthenticated: state.isAuthenticated,
         }),
-      }
-    )
-  )
+      },
+    ),
+  ),
 );
 ```
 
 ## Component Testing Standards
 
 ### Testing Library Setup
+
 ```tsx
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
-import { UserProfile } from '@/components/UserProfile';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
+import { UserProfile } from "@/components/UserProfile";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Test utilities
 const createWrapper = () => {
@@ -258,78 +267,75 @@ const createWrapper = () => {
       queries: { retry: false },
     },
   });
-  
+
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 };
 
-describe('UserProfile', () => {
+describe("UserProfile", () => {
   const mockUser = {
-    id: '123',
-    name: 'John Doe',
-    email: 'john@example.com',
-    createdAt: '2024-01-01T00:00:00Z',
+    id: "123",
+    name: "John Doe",
+    email: "john@example.com",
+    createdAt: "2024-01-01T00:00:00Z",
   };
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  
-  it('should render user information', async () => {
+
+  it("should render user information", async () => {
     // Mock API call
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockUser,
     });
-    
+
     render(<UserProfile userId="123" />, { wrapper: createWrapper() });
-    
+
     // Wait for data to load
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
-    
-    expect(screen.getByText('john@example.com')).toBeInTheDocument();
+
+    expect(screen.getByText("john@example.com")).toBeInTheDocument();
   });
-  
-  it('should handle edit mode', async () => {
+
+  it("should handle edit mode", async () => {
     const user = userEvent.setup();
     const onUpdate = vi.fn();
-    
+
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockUser,
     });
-    
-    render(
-      <UserProfile userId="123" onUpdate={onUpdate} />,
-      { wrapper: createWrapper() }
-    );
-    
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
+
+    render(<UserProfile userId="123" onUpdate={onUpdate} />, {
+      wrapper: createWrapper(),
     });
-    
+
+    await waitFor(() => {
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
+
     // Click edit button
-    await user.click(screen.getByText('Edit'));
-    
+    await user.click(screen.getByText("Edit"));
+
     // Should show form
-    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
   });
-  
-  it('should handle errors gracefully', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-    
+
+  it("should handle errors gracefully", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+
     render(<UserProfile userId="123" />, { wrapper: createWrapper() });
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Failed to fetch user')).toBeInTheDocument();
+      expect(screen.getByText("Failed to fetch user")).toBeInTheDocument();
     });
-    
-    expect(screen.getByText('Try Again')).toBeInTheDocument();
+
+    expect(screen.getByText("Try Again")).toBeInTheDocument();
   });
 });
 ```
@@ -337,31 +343,29 @@ describe('UserProfile', () => {
 ## Performance Optimization
 
 ### Code Splitting and Lazy Loading
+
 ```tsx
-import { lazy, Suspense } from 'react';
-import dynamic from 'next.js';
+import { lazy, Suspense } from "react";
+import dynamic from "next.js";
 
 // Next.js dynamic import with loading state
-const HeavyChart = dynamic(
-  () => import('@/components/HeavyChart'),
-  {
-    loading: () => <ChartSkeleton />,
-    ssr: false, // Disable SSR for client-only components
-  }
-);
+const HeavyChart = dynamic(() => import("@/components/HeavyChart"), {
+  loading: () => <ChartSkeleton />,
+  ssr: false, // Disable SSR for client-only components
+});
 
 // React lazy loading
-const AdminDashboard = lazy(() => import('@/components/AdminDashboard'));
+const AdminDashboard = lazy(() => import("@/components/AdminDashboard"));
 
 // Memoization for expensive operations
 const ExpensiveComponent = memo<Props>(({ data, filter }) => {
   const filteredData = useMemo(() => {
     return data
-      .filter(item => item.status === filter)
+      .filter((item) => item.status === filter)
       .sort((a, b) => b.date - a.date)
       .slice(0, 100);
   }, [data, filter]);
-  
+
   return <DataList items={filteredData} />;
 });
 ```
@@ -369,6 +373,7 @@ const ExpensiveComponent = memo<Props>(({ data, filter }) => {
 ## Development Standards
 
 ### Component Quality Checklist
+
 - [ ] TypeScript types are comprehensive and accurate
 - [ ] Component handles loading, error, and empty states
 - [ ] Proper React hooks usage with dependencies

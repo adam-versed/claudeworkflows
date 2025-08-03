@@ -3,61 +3,62 @@
 ## Location Services
 
 ### Location Permission Handling
+
 ```typescript
-import * as Location from 'expo-location';
-import { Platform } from 'react-native';
+import * as Location from "expo-location";
+import { Platform } from "react-native";
 
 export class LocationService {
   static async requestLocationPermission(): Promise<boolean> {
-    if (Platform.OS === 'ios') {
+    if (Platform.OS === "ios") {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      return status === 'granted';
+      return status === "granted";
     } else {
       // Android handles permissions through Expo
       const { status } = await Location.requestForegroundPermissionsAsync();
-      return status === 'granted';
+      return status === "granted";
     }
   }
-  
+
   static async getCurrentLocation(): Promise<Location.LocationObject | null> {
     try {
       const permission = await this.requestLocationPermission();
       if (!permission) {
         return null;
       }
-      
+
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
-      
+
       return location;
     } catch (error) {
-      console.error('Error getting location:', error);
+      console.error("Error getting location:", error);
       return null;
     }
   }
-  
+
   static async watchLocation(
-    callback: (location: Location.LocationObject) => void
+    callback: (location: Location.LocationObject) => void,
   ): Promise<{ remove: () => void } | null> {
     try {
       const permission = await this.requestLocationPermission();
       if (!permission) {
         return null;
       }
-      
+
       const subscription = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.High,
           timeInterval: 1000,
           distanceInterval: 1,
         },
-        callback
+        callback,
       );
-      
+
       return subscription;
     } catch (error) {
-      console.error('Error watching location:', error);
+      console.error("Error watching location:", error);
       return null;
     }
   }
@@ -67,10 +68,11 @@ export class LocationService {
 ## Push Notifications
 
 ### Expo Notifications Setup
+
 ```typescript
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import { Platform } from 'react-native';
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -84,49 +86,50 @@ Notifications.setNotificationHandler({
 export class NotificationService {
   static async setupPushNotifications(): Promise<string | null> {
     if (!Device.isDevice) {
-      console.log('Must use physical device for Push Notifications');
+      console.log("Must use physical device for Push Notifications");
       return null;
     }
-    
+
     // Platform-specific notification setup
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: "#FF231F7C",
       });
     }
-    
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
+
+    if (existingStatus !== "granted") {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
-    
-    if (finalStatus !== 'granted') {
-      console.log('Failed to get push token for push notification!');
+
+    if (finalStatus !== "granted") {
+      console.log("Failed to get push token for push notification!");
       return null;
     }
-    
+
     try {
       const token = await Notifications.getExpoPushTokenAsync({
-        projectId: 'your-project-id', // From app.json
+        projectId: "your-project-id", // From app.json
       });
       return token.data;
     } catch (error) {
-      console.error('Error getting push token:', error);
+      console.error("Error getting push token:", error);
       return null;
     }
   }
-  
+
   static async schedulePushNotification(
     title: string,
     body: string,
     data?: any,
-    trigger?: Notifications.NotificationTriggerInput
+    trigger?: Notifications.NotificationTriggerInput,
   ) {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -137,27 +140,26 @@ export class NotificationService {
       trigger: trigger || { seconds: 2 },
     });
   }
-  
+
   static setupNotificationListeners() {
     // Handle notification when app is foregrounded
     const notificationListener = Notifications.addNotificationReceivedListener(
-      notification => {
-        console.log('Notification received:', notification);
-      }
+      (notification) => {
+        console.log("Notification received:", notification);
+      },
     );
-    
+
     // Handle notification response when user taps it
-    const responseListener = Notifications.addNotificationResponseReceivedListener(
-      response => {
-        console.log('Notification response:', response);
+    const responseListener =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("Notification response:", response);
         // Navigate based on notification data
         const data = response.notification.request.content.data;
         if (data.screen) {
           // Navigate to specific screen
         }
-      }
-    );
-    
+      });
+
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
       Notifications.removeNotificationSubscription(responseListener);
@@ -169,61 +171,62 @@ export class NotificationService {
 ## Camera & Media
 
 ### Camera Integration
+
 ```typescript
-import { Camera } from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
-import * as ImagePicker from 'expo-image-picker';
+import { Camera } from "expo-camera";
+import * as MediaLibrary from "expo-media-library";
+import * as ImagePicker from "expo-image-picker";
 
 export class CameraService {
   static async requestCameraPermissions(): Promise<boolean> {
     const { status } = await Camera.requestCameraPermissionsAsync();
-    return status === 'granted';
+    return status === "granted";
   }
-  
+
   static async requestMediaLibraryPermissions(): Promise<boolean> {
     const { status } = await MediaLibrary.requestPermissionsAsync();
-    return status === 'granted';
+    return status === "granted";
   }
-  
+
   static async pickImageFromLibrary(): Promise<string | null> {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permission.granted === false) {
       return null;
     }
-    
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-    
+
     if (!result.canceled) {
       return result.assets[0].uri;
     }
-    
+
     return null;
   }
-  
+
   static async takePicture(): Promise<string | null> {
     const cameraPermission = await this.requestCameraPermissions();
     const mediaPermission = await this.requestMediaLibraryPermissions();
-    
+
     if (!cameraPermission || !mediaPermission) {
       return null;
     }
-    
+
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-    
+
     if (!result.canceled) {
       return result.assets[0].uri;
     }
-    
+
     return null;
   }
 }
@@ -232,37 +235,41 @@ export class CameraService {
 ## File System & Storage
 
 ### Expo FileSystem
+
 ```typescript
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 export class FileService {
   static get documentsDirectory() {
     return FileSystem.documentDirectory;
   }
-  
-  static async saveFile(content: string, filename: string): Promise<string | null> {
+
+  static async saveFile(
+    content: string,
+    filename: string,
+  ): Promise<string | null> {
     try {
       const fileUri = `${FileSystem.documentDirectory}${filename}`;
       await FileSystem.writeAsStringAsync(fileUri, content);
       return fileUri;
     } catch (error) {
-      console.error('Error saving file:', error);
+      console.error("Error saving file:", error);
       return null;
     }
   }
-  
+
   static async readFile(filename: string): Promise<string | null> {
     try {
       const fileUri = `${FileSystem.documentDirectory}${filename}`;
       const content = await FileSystem.readAsStringAsync(fileUri);
       return content;
     } catch (error) {
-      console.error('Error reading file:', error);
+      console.error("Error reading file:", error);
       return null;
     }
   }
-  
+
   static async shareFile(fileUri: string): Promise<void> {
     try {
       const isAvailable = await Sharing.isAvailableAsync();
@@ -270,22 +277,25 @@ export class FileService {
         await Sharing.shareAsync(fileUri);
       }
     } catch (error) {
-      console.error('Error sharing file:', error);
+      console.error("Error sharing file:", error);
     }
   }
-  
-  static async downloadFile(url: string, filename: string): Promise<string | null> {
+
+  static async downloadFile(
+    url: string,
+    filename: string,
+  ): Promise<string | null> {
     try {
       const fileUri = `${FileSystem.documentDirectory}${filename}`;
       const downloadResult = await FileSystem.downloadAsync(url, fileUri);
-      
+
       if (downloadResult.status === 200) {
         return downloadResult.uri;
       }
-      
+
       return null;
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error("Error downloading file:", error);
       return null;
     }
   }
@@ -295,6 +305,7 @@ export class FileService {
 ## App Configuration
 
 ### app.json Configuration
+
 ```json
 {
   "expo": {
@@ -309,9 +320,7 @@ export class FileService {
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yourcompany.yourapp",
@@ -329,11 +338,7 @@ export class FileService {
       },
       "package": "com.yourcompany.yourapp",
       "versionCode": 1,
-      "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "ACCESS_FINE_LOCATION"
-      ]
+      "permissions": ["CAMERA", "RECORD_AUDIO", "ACCESS_FINE_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -359,6 +364,7 @@ export class FileService {
 ## Development Build Configuration
 
 ### eas.json Configuration
+
 ```json
 {
   "cli": {
@@ -390,14 +396,15 @@ export class FileService {
 ## Bundle Optimization
 
 ### Metro Configuration for Expo
+
 ```javascript
 // metro.config.js
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig } = require("expo/metro-config");
 
 const config = getDefaultConfig(__dirname);
 
 // Enable Hermes
-config.transformer.hermesCommand = 'hermes';
+config.transformer.hermesCommand = "hermes";
 
 // Optimization settings
 config.transformer.minifierConfig = {
@@ -410,7 +417,7 @@ config.transformer.minifierConfig = {
 };
 
 // Asset extensions
-config.resolver.assetExts.push('png', 'jpg', 'jpeg', 'gif', 'webp');
+config.resolver.assetExts.push("png", "jpg", "jpeg", "gif", "webp");
 
 module.exports = config;
 ```
@@ -418,75 +425,79 @@ module.exports = config;
 ## Testing with Expo
 
 ### E2E Testing Setup with Detox
+
 ```javascript
 // .detoxrc.js
 module.exports = {
-  testRunner: 'jest',
-  runnerConfig: 'e2e/config.json',
+  testRunner: "jest",
+  runnerConfig: "e2e/config.json",
   configurations: {
-    'ios.sim.debug': {
+    "ios.sim.debug": {
       device: {
-        type: 'ios.simulator',
+        type: "ios.simulator",
         device: {
-          type: 'iPhone 13',
+          type: "iPhone 13",
         },
       },
       app: {
-        type: 'ios.app',
-        binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/YourApp.app',
-        build: 'xcodebuild -workspace ios/YourApp.xcworkspace -scheme YourApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        type: "ios.app",
+        binaryPath:
+          "ios/build/Build/Products/Debug-iphonesimulator/YourApp.app",
+        build:
+          "xcodebuild -workspace ios/YourApp.xcworkspace -scheme YourApp -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build",
       },
     },
-    'android.emu.debug': {
+    "android.emu.debug": {
       device: {
-        type: 'android.emulator',
+        type: "android.emulator",
         device: {
-          avdName: 'Pixel_3a_API_30_x86',
+          avdName: "Pixel_3a_API_30_x86",
         },
       },
       app: {
-        type: 'android.apk',
-        binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
-        build: 'cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug',
+        type: "android.apk",
+        binaryPath: "android/app/build/outputs/apk/debug/app-debug.apk",
+        build:
+          "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug",
       },
     },
   },
 };
 
 // E2E test example
-describe('User Registration Flow', () => {
+describe("User Registration Flow", () => {
   beforeAll(async () => {
-    await device.launchApp({ 
+    await device.launchApp({
       newInstance: true,
-      permissions: { notifications: 'YES' }
+      permissions: { notifications: "YES" },
     });
   });
-  
+
   beforeEach(async () => {
     await device.reloadReactNative();
   });
-  
-  it('should complete registration successfully', async () => {
+
+  it("should complete registration successfully", async () => {
     // Navigate to registration
-    await element(by.id('tab-profile')).tap();
-    await element(by.id('sign-up-button')).tap();
-    
+    await element(by.id("tab-profile")).tap();
+    await element(by.id("sign-up-button")).tap();
+
     // Fill registration form
-    await element(by.id('email-input')).typeText('new@example.com');
-    await element(by.id('password-input')).typeText('SecurePass123!');
-    await element(by.id('name-input')).typeText('New User');
-    
+    await element(by.id("email-input")).typeText("new@example.com");
+    await element(by.id("password-input")).typeText("SecurePass123!");
+    await element(by.id("name-input")).typeText("New User");
+
     // Dismiss keyboard
-    await element(by.id('name-input')).tapReturnKey();
-    
+    await element(by.id("name-input")).tapReturnKey();
+
     // Accept terms
-    await element(by.id('terms-checkbox')).tap();
-    
+    await element(by.id("terms-checkbox")).tap();
+
     // Submit
-    await element(by.id('submit-button')).tap();
-    
+    await element(by.id("submit-button")).tap();
+
     // Verify success
-    await expect(element(by.text('Welcome, New User!'))).toBeVisible();
+    await expect(element(by.text("Welcome, New User!"))).toBeVisible();
   });
 });
 ```
@@ -494,6 +505,7 @@ describe('User Registration Flow', () => {
 ## Development Standards
 
 ### Expo Quality Checklist
+
 - [ ] Proper permissions configured in app.json
 - [ ] Push notifications working on physical devices
 - [ ] Camera and media library integration tested

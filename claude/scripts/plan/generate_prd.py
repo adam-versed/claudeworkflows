@@ -7,17 +7,17 @@ Generates comprehensive Product Requirements Documents from JSON input data.
 import json
 import sys
 import argparse
-from pathlib import Path
 from typing import Dict, List, Any
+
 
 def generate_prd_content(data: Dict[str, Any]) -> str:
     """Generate PRD markdown content from structured data."""
-    
+
     def format_features(features: List[Dict[str, str]], category: str) -> str:
         """Format features for a specific MoSCoW category."""
         if not features:
             return f"_No {category.lower()} features defined_\n"
-        
+
         content = ""
         for feature in features:
             content += f"- **{feature['name']}** - {feature['description']}\n"
@@ -27,35 +27,37 @@ def generate_prd_content(data: Dict[str, Any]) -> str:
         """Format user personas."""
         if not personas:
             return "_No personas defined_\n"
-        
+
         content = ""
         for persona in personas:
             content += f"### {persona['name']} - {persona['role']}\n\n"
             content += "**Demographics:**\n\n"
-            for key, value in persona.get('demographics', {}).items():
+            for key, value in persona.get("demographics", {}).items():
                 content += f"- {key.title()}: {value}\n"
-            
+
             content += "\n**Context & Goals:**\n\n"
-            for key, value in persona.get('context', {}).items():
+            for key, value in persona.get("context", {}).items():
                 content += f"- **{key.replace('_', ' ').title()}:** {value}\n"
-            
+
             content += "\n**Pain Points:**\n\n"
-            for pain_point in persona.get('pain_points', []):
-                content += f"- **{pain_point['category']}:** \"{pain_point['quote']}\"\n"
-            
+            for pain_point in persona.get("pain_points", []):
+                content += (
+                    f"- **{pain_point['category']}:** \"{pain_point['quote']}\"\n"
+                )
+
             content += "\n**Screen Usage Patterns:**\n\n"
-            patterns = persona.get('screen_patterns', {})
+            patterns = persona.get("screen_patterns", {})
             for key, value in patterns.items():
                 content += f"- **{key.replace('_', ' ').title()}:** {value}\n"
             content += "\n"
-        
+
         return content
 
     def format_screens(screens: List[Dict[str, str]], category: str) -> str:
         """Format screen inventory."""
         if not screens:
             return f"_No {category.lower()} screens defined_\n"
-        
+
         content = ""
         for screen in screens:
             content += f"- **{screen['name']}:** {screen['description']}\n"
@@ -64,19 +66,21 @@ def generate_prd_content(data: Dict[str, Any]) -> str:
     def format_design_principles(principles: Dict[str, Any]) -> str:
         """Format design principles section."""
         content = "### Core Design Principles\n\n"
-        
-        if 'usability' in principles:
+
+        if "usability" in principles:
             content += "**Usability Principles:**\n\n"
-            for principle in principles['usability']:
+            for principle in principles["usability"]:
                 content += f"- **{principle['name']}:** {principle['description']}\n"
             content += "\n"
-        
-        if 'accessibility' in principles:
+
+        if "accessibility" in principles:
             content += "**Accessibility Standards:**\n\n"
-            for standard in principles['accessibility']:
-                content += f"- **{standard['requirement']}:** {standard['specification']}\n"
+            for standard in principles["accessibility"]:
+                content += (
+                    f"- **{standard['requirement']}:** {standard['specification']}\n"
+                )
             content += "\n"
-        
+
         return content
 
     # Build PRD content
@@ -108,7 +112,7 @@ def generate_prd_content(data: Dict[str, Any]) -> str:
 
 ### Won't Have
 
-{format_features(data.get('features', {}).get('wont_have', []), 'Won\\'t Have')}
+{format_features(data.get('features', {}).get('wont_have', []), "Won't Have")}
 
 ---
 
@@ -224,39 +228,46 @@ def generate_prd_content(data: Dict[str, Any]) -> str:
 
 Remember: The goal is to create a PRD document that serves as a definitive guide for product feature development, with particular emphasis on user experience design, interface specifications, and clear screen architecture that supports optimal user flows.
 """
-    
+
     return prd_content
 
+
 def main():
-    parser = argparse.ArgumentParser(description='Generate PRD from JSON data')
-    parser.add_argument('json_file', help='Path to JSON file containing PRD data')
-    parser.add_argument('-o', '--output', help='Output file path (default: [product_name].md)')
-    parser.add_argument('--output-format', choices=['markdown'], default='markdown', 
-                       help='Output format (default: markdown)')
-    
+    parser = argparse.ArgumentParser(description="Generate PRD from JSON data")
+    parser.add_argument("json_file", help="Path to JSON file containing PRD data")
+    parser.add_argument(
+        "-o", "--output", help="Output file path (default: [product_name].md)"
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["markdown"],
+        default="markdown",
+        help="Output format (default: markdown)",
+    )
+
     args = parser.parse_args()
-    
+
     try:
         # Read JSON data
-        with open(args.json_file, 'r') as f:
+        with open(args.json_file, "r") as f:
             data = json.load(f)
-        
+
         # Generate PRD content
         prd_content = generate_prd_content(data)
-        
+
         # Determine output file
         if args.output:
             output_file = args.output
         else:
-            product_name = data.get('product_name', 'product').lower().replace(' ', '_')
+            product_name = data.get("product_name", "product").lower().replace(" ", "_")
             output_file = f"{product_name}.md"
-        
+
         # Write PRD file
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             f.write(prd_content)
-        
+
         print(f"PRD generated successfully: {output_file}")
-        
+
     except FileNotFoundError:
         print(f"Error: JSON file '{args.json_file}' not found", file=sys.stderr)
         sys.exit(1)
@@ -266,6 +277,7 @@ def main():
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

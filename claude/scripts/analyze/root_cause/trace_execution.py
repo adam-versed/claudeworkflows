@@ -109,10 +109,16 @@ class HighLevelTracer:
             file_info = {
                 "total_lines": len(lines),
                 "code_lines": len(
-                    [line for line in lines if line.strip() and not line.strip().startswith("#")]
+                    [
+                        line
+                        for line in lines
+                        if line.strip() and not line.strip().startswith("#")
+                    ]
                 ),
                 "blank_lines": len([line for line in lines if not line.strip()]),
-                "comment_lines": len([line for line in lines if line.strip().startswith("#")]),
+                "comment_lines": len(
+                    [line for line in lines if line.strip().startswith("#")]
+                ),
             }
 
             # Count basic patterns

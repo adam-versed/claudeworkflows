@@ -1,4 +1,4 @@
-#generate_procfile.py v0.3
+# generate_procfile.py v0.3
 """
 Procfile generator for development monitoring.
 Creates Procfile with component-specific service definitions based on LLM analysis.
@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 from datetime import datetime
+
 
 def generate_procfile_header(components_info):
     """Generate Procfile header comment."""
@@ -23,24 +24,25 @@ def generate_procfile_header(components_info):
 # Log Format: [HH:MM:SS] [LABEL] message
 """
 
+
 def generate_service_definition(component):
     """Generate a single service definition for Procfile."""
-    name = component.get('name', 'unknown')
-    label = component.get('label', name.upper())
-    start_command = component.get('start_command', 'echo "No start command defined"')
-    cwd = component.get('cwd', '.')
-    port = component.get('port')
-    
+    name = component.get("name", "unknown")
+    label = component.get("label", name.upper())
+    start_command = component.get("start_command", 'echo "No start command defined"')
+    cwd = component.get("cwd", ".")
+    port = component.get("port")
+
     # Build the command with proper logging format
-    if cwd != '.':
+    if cwd != ".":
         command = f"cd {cwd} && "
     else:
         command = ""
-    
+
     # Add port configuration if specified
     if port:
         # For Next.js, use both PORT env var and --port flag for reliability
-        if 'next dev' in start_command or 'npm run dev' in start_command:
+        if "next dev" in start_command or "npm run dev" in start_command:
             command += f"PORT={port} "
             # Append port flag to the start command
             start_command_with_port = f"{start_command} -- --port {port}"
@@ -49,79 +51,95 @@ def generate_service_definition(component):
             start_command_with_port = start_command
     else:
         start_command_with_port = start_command
-    
+
     # Add the start command with logging pipeline (absolute path fix for directory changes)
-    if cwd != '.':
+    if cwd != ".":
         # When changing directories, capture absolute log path first
-        full_command = f"LOGFILE=\"$(pwd)/dev.log\" && {command}{start_command_with_port} 2>&1 | while IFS= read -r line; do echo \"[$(date '+%H:%M:%S')] [{label}] $line\"; done | tee -a \"$LOGFILE\""
+        full_command = f'LOGFILE="$(pwd)/dev.log" && {command}{start_command_with_port} 2>&1 | while IFS= read -r line; do echo "[$(date \'+%H:%M:%S\')] [{label}] $line"; done | tee -a "$LOGFILE"'
         return f"{name}: {full_command}"
     else:
         # No directory change, use relative path
         command += f"{start_command_with_port} 2>&1 | while IFS= read -r line; do echo \"[$(date '+%H:%M:%S')] [{label}] $line\"; done | tee -a ./dev.log"
         return f"{name}: {command}"
 
+
 def generate_combined_log_service(components_info):
     """Generate a service that aggregates all logs."""
     if len(components_info) <= 1:
         return None  # No need for combined logs with single service
-    
+
     # Create a service that tails the combined log file
     return "logs: tail -f dev.log 2>/dev/null || (echo 'Waiting for services to start...' && sleep 2 && tail -f dev.log)"
 
+
 def generate_health_check_service(components_info):
     """Generate a health monitoring service."""
-    health_components = [c for c in components_info if c.get('port')]
-    
+    health_components = [c for c in components_info if c.get("port")]
+
     if not health_components:
         return None
-    
+
     # Create a health check service that periodically checks all endpoints
     health_checks = []
     for component in health_components:
-        name = component.get('name')
-        label = component.get('label', name.upper())
-        port = component.get('port')
-        endpoint = component.get('health_endpoint', '/health')
-        
+        name = component.get("name")
+        label = component.get("label", name.upper())
+        port = component.get("port")
+        endpoint = component.get("health_endpoint", "/health")
+
         check = f"curl -sf http://localhost:{port}{endpoint} >/dev/null && echo '[HEALTH] {label}: OK' || echo '[HEALTH] {label}: FAIL'"
         health_checks.append(check)
-    
+
     health_command = " && ".join(health_checks)
     return f"health: while true; do {health_command}; sleep 30; done"
+
 
 def generate_file_watcher_service(watch_patterns):
     """Generate file watching service if needed."""
     if not watch_patterns:
         return None
-    
+
     # Use watchexec if available, otherwise provide a fallback
     patterns_str = " ".join([f'"{pattern}"' for pattern in watch_patterns])
-    
+
     return f"watch: watchexec --restart --clear {patterns_str} -- echo '[WATCH] Files changed, services should auto-reload'"
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Generate Procfile for development monitoring")
-    parser.add_argument("--components", required=True, help="JSON string of component configurations")
+    parser = argparse.ArgumentParser(
+        description="Generate Procfile for development monitoring"
+    )
+    parser.add_argument(
+        "--components", required=True, help="JSON string of component configurations"
+    )
     parser.add_argument("--watch-patterns", help="JSON string of file watch patterns")
-    parser.add_argument("--log-format", default="unified", choices=["unified", "separate"], 
-                       help="Log format: unified (single file) or separate (per service)")
+    parser.add_argument(
+        "--log-format",
+        default="unified",
+        choices=["unified", "separate"],
+        help="Log format: unified (single file) or separate (per service)",
+    )
     parser.add_argument("--output-dir", default=".", help="Output directory")
     parser.add_argument("--output-file", default="Procfile", help="Output filename")
-    parser.add_argument("--include-health", action="store_true", help="Include health check service")
-    parser.add_argument("--include-watcher", action="store_true", help="Include file watcher service")
-    
+    parser.add_argument(
+        "--include-health", action="store_true", help="Include health check service"
+    )
+    parser.add_argument(
+        "--include-watcher", action="store_true", help="Include file watcher service"
+    )
+
     args = parser.parse_args()
-    
+
     try:
         components = json.loads(args.components)
     except json.JSONDecodeError as e:
         print(f"Error parsing components JSON: {e}")
         return 1
-    
+
     if not isinstance(components, list):
         print("Components must be a JSON array")
         return 1
-    
+
     # Parse watch patterns if provided
     watch_patterns = []
     if args.watch_patterns:
@@ -129,63 +147,64 @@ def main():
             watch_patterns = json.loads(args.watch_patterns)
         except json.JSONDecodeError:
             print("Warning: Could not parse watch patterns, skipping file watcher")
-    
+
     # Generate Procfile content
     procfile_lines = []
-    
+
     # Add header comment
     procfile_lines.append(generate_procfile_header(components))
     procfile_lines.append("")  # Empty line after header
-    
+
     # Add service definitions
     for component in components:
         service_def = generate_service_definition(component)
         procfile_lines.append(service_def)
-    
+
     procfile_lines.append("")  # Empty line before optional services
-    
+
     # Add optional services
     if args.include_health:
         health_service = generate_health_check_service(components)
         if health_service:
             procfile_lines.append(health_service)
-    
+
     if args.include_watcher and watch_patterns:
         watcher_service = generate_file_watcher_service(watch_patterns)
         if watcher_service:
             procfile_lines.append(watcher_service)
-    
+
     # Skip log aggregation service - use make tail-logs instead
     # Individual services already pipe to dev.log via tee
-    
+
     # Write Procfile
     output_path = Path(args.output_dir) / args.output_file
     try:
-        with open(output_path, 'w') as f:
-            f.write('\n'.join(procfile_lines))
-        
+        with open(output_path, "w") as f:
+            f.write("\n".join(procfile_lines))
+
         print(f"Generated Procfile: {output_path}")
         print(f"Components: {len(components)}")
         for component in components:
-            name = component.get('name', 'unknown')
-            label = component.get('label', name.upper())
-            port = component.get('port', 'N/A')
+            name = component.get("name", "unknown")
+            label = component.get("label", name.upper())
+            port = component.get("port", "N/A")
             print(f"  - {name} ({label}) - Port: {port}")
-        
+
         if args.include_health:
             print("Included health monitoring service")
         if args.include_watcher and watch_patterns:
             print(f"Included file watcher for {len(watch_patterns)} patterns")
-        
+
         print("\nUsage:")
         print("  foreman start              # Start all services")
         print(f"  shoreman {args.output_file}   # Alternative process manager")
-        
+
         return 0
-        
+
     except Exception as e:
         print(f"Error writing Procfile: {e}")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

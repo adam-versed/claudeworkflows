@@ -30,6 +30,7 @@ Structured workflow to transform vague todos into implemented features using git
 3. Read `Claude.md` in full
 
    - If missing:
+
      - Use parallel Task agents to analyze codebase:
        - Identify purpose, features
        - Identify languages, frameworks, tools (build, dependency management, test, etc.)
@@ -70,7 +71,6 @@ Structured workflow to transform vague todos into implemented features using git
        ## Testing
 
        [How to create and run tests]
-
        ```
 
      - STOP → Any corrections needed? (y/n)"

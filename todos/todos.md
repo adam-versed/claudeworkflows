@@ -1,7 +1,0 @@
-- create a more comprehensive test system, for each programming language we support.
-- register the counter pose mcp /Users/adamjackson/LocalDev/counter-pose-mcp and add a global switch for critical thinking --critique
-- add playwright mcp support with e2e testing workflow
-- add an init project workflow for using my starter project templates
-- review the rules in the wip folder
-- add browsertools mcp testing support
-- orchestrate-todos.md - nested worktrees, only doing 3 agents at a time then pauses, needs agent/orchestrator differences, not sure research support happened
