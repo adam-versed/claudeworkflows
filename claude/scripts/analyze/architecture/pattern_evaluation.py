@@ -19,7 +19,7 @@ try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
     from tech_stack_detector import TechStackDetector
-    from improved_pattern_detection import ImprovedPatternDetector
+    from architectural_pattern_detector import ArchitecturalPatternDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -32,140 +32,10 @@ class PatternEvaluator:
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
         self.tech_detector = TechStackDetector()
-        self.pattern_detector = ImprovedPatternDetector()
+        self.pattern_detector = ArchitecturalPatternDetector()
 
-        # Design pattern signatures
-        self.patterns = {
-            "singleton": {
-                "indicators": [
-                    r"class\s+\w+.*:\s*\n.*_instance\s*=\s*None",
-                    r"def\s+__new__\s*\(",
-                    r"getInstance\s*\(",
-                    r"private\s+static.*instance",
-                    r"static\s+instance\s*=",
-                ],
-                "severity": "medium",
-                "description": "Singleton pattern detected",
-            },
-            "factory": {
-                "indicators": [
-                    r"class\s+\w*Factory\w*",
-                    r"def\s+create\w*\(",
-                    r"def\s+make\w*\(",
-                    r"Factory\s*[<\(]",
-                    r"createInstance\s*\(",
-                ],
-                "severity": "low",
-                "description": "Factory pattern detected",
-            },
-            "observer": {
-                "indicators": [
-                    r"class\s+\w*Observer\w*",
-                    r"def\s+notify\s*\(",
-                    r"def\s+update\s*\(",
-                    r"addEventListener\s*\(",
-                    r"subscribe\s*\(",
-                    r"on\w+\s*\(",
-                ],
-                "severity": "low",
-                "description": "Observer pattern detected",
-            },
-            "strategy": {
-                "indicators": [
-                    r"class\s+\w*Strategy\w*",
-                    r"def\s+execute\s*\(",
-                    r"def\s+algorithm\s*\(",
-                    r"Strategy\s*[<\(]",
-                ],
-                "severity": "low",
-                "description": "Strategy pattern detected",
-            },
-            "decorator": {
-                "indicators": [
-                    r"@\w+",
-                    r"class\s+\w*Decorator\w*",
-                    r"def\s+decorator\s*\(",
-                    r"wrapper\s*\(",
-                    r"__call__\s*\(",
-                ],
-                "severity": "low",
-                "description": "Decorator pattern detected",
-            },
-        }
-
-        # Anti-patterns
-        self.antipatterns = {
-            "god_class": {
-                "indicators": [
-                    r"class\s+\w+.*:\s*(?:\n.*){100,}",  # Very long classes
-                ],
-                "severity": "high",
-                "description": "Potential God class (overly complex class)",
-            },
-            "feature_envy": {
-                "indicators": [
-                    r"\w+\.\w+\.\w+\.\w+",  # Deep chaining
-                ],
-                "severity": "medium",
-                "description": "Feature envy (excessive method chaining)",
-            },
-            "data_class": {
-                "indicators": [
-                    r"class\s+\w+.*:\s*\n(?:\s*def\s+(?:get|set)\w*\(.*\):\s*\n.*)*\s*$",
-                ],
-                "severity": "medium",
-                "description": "Data class (class with only getters/setters)",
-            },
-        }
-
-        # Architectural patterns
-        self.architectural_patterns = {
-            "mvc": {
-                "indicators": [
-                    r"class\s+\w*Controller\w*",
-                    r"class\s+\w*Model\w*",
-                    r"class\s+\w*View\w*",
-                    r"models/",
-                    r"views/",
-                    r"controllers/",
-                ],
-                "severity": "low",
-                "description": "MVC pattern detected",
-            },
-            "repository": {
-                "indicators": [
-                    r"class\s+\w*Repository\w*",
-                    r"def\s+findBy\w*\(",
-                    r"def\s+save\s*\(",
-                    r"def\s+delete\s*\(",
-                    r"Repository\s*[<\(]",
-                ],
-                "severity": "low",
-                "description": "Repository pattern detected",
-            },
-            "service": {
-                "indicators": [
-                    r"class\s+\w*Service\w*",
-                    r"services/",
-                    r"@Service",
-                    r"Service\s*[<\(]",
-                ],
-                "severity": "low",
-                "description": "Service pattern detected",
-            },
-            "dependency_injection": {
-                "indicators": [
-                    r"@inject",
-                    r"@Inject",
-                    r"container\.",
-                    r"dependency.*inject",
-                    r"IoC",
-                    r"DI\.",
-                ],
-                "severity": "low",
-                "description": "Dependency injection detected",
-            },
-        }
+        # Pattern detection delegated to architectural_pattern_detector
+        # All pattern definitions moved to the dedicated detector
 
     def analyze_patterns(
         self, target_path: str, min_severity: str = "low"

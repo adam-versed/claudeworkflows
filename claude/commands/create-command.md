@@ -6,14 +6,14 @@ Create a new Claude Code slash command based on the task description provided in
 
 Parse the arguments to extract:
 
-1. **Scope**: "project" or "system" (default to project if not specified)
+1. **Scope**: "project" or "user" (default to project if not specified)
 2. **Command name**: The name for the new command
 3. **Task description**: What the command should do
 
 Based on the scope:
 
-- For "project" scope: Create the command file in `./claude_commands/[command-name].md`
-- For "system" scope: Create the command file in `~/.claude/commands/[command-name].md`
+- For "project" scope: Create the command file in `./commands/[command-name].md`
+- For "user" scope: Create the command file in `$HOME/.claude/commands/[command-name].md`
 
 ## Command File Requirements
 
@@ -52,7 +52,7 @@ $ARGUMENTS
 
 ## Example Usage
 
-- `/create-command system lint-fix "Run linting tools and automatically fix issues in the codebase"`
+- `/create-command user lint-fix "Run linting tools and automatically fix issues in the codebase"`
 - `/create-command project deploy-staging "Deploy the current branch to staging environment with pre-deployment checks"`
 
 $ARGUMENTS

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Validation utilities for Claude Code Workflows analysis scripts.
+Analysis environment validation and configuration utilities.
+Ensures safe analysis conditions: valid directories, files, git repos, and environment setup.
 """
 
 import os

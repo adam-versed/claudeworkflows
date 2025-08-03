@@ -24,7 +24,7 @@ try:
         Finding,
         AnalysisResult,
     )
-    from validation import (
+    from analysis_environment import (
         validate_target_directory,
         validate_environment_config,
         log_debug,

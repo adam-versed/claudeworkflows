@@ -1,19 +1,31 @@
-## Monitor User Request For Flags
+## Monitor User Request For Flags Enabled Modes
 
-**When a `--[FLAG]` flag(s) is present in the user request, follow the matching condition**:
+**When a `--[FLAG]` flag(s) is present in the user request, apply the matching condition**:
 
 <condition>
 
-- If user request contains flag `--prototype` then <rapid_prototype_rules> = enabled
-- If user request contains flag `--tdd` then <tdd> = enabled
-- if user request contains flag `--seq` then use the sequential-thinking MCP tool for complex, multi-step analysis
-- if user request contains flag `--gitgrep` then use the grep MCP tool to search across highly rated GitHub repositories for code examples or libraries to use
+- If user request contains flag `--prototype` then <rapid_prototype_rules> mode = enabled
+- If user request contains flag `--tdd` then <tdd> mode = enabled
+- if user request contains flag `--seq` then <sequential_thinking_mcp_tool> mode = enabled
+- if user request contains flag `--gitgrep` then <grep_mcp_tool> mode = enabled
 
 </condition>
 
+<sequential_thinking_mcp_tool>
+
+**NO EXCEPTIONS - ONLY when this mode is enabled**: Use the sequential-thinking MCP tool for complex, multi-step analysis to break down the task(s)
+
+</sequential_thinking_mcp_tool>
+
+<grep_mcp_tool>
+
+**NO EXCEPTIONS - ONLY when this mode is enabled**: then use the grep MCP tool to search across highly rated GitHub repositories for code examples or libraries to use
+
+</grep_mcp_tool>
+
 <rapid_prototyping_rules>
 
-`--prototype` **When this flag is used**: Follow prototype implementation rules below
+**NO EXCEPTIONS - ONLY when this mode is enabled**: Follow prototype implementation rules below
 
 **Purpose**
 
@@ -57,7 +69,7 @@ Quick proof-of-concept development with minimal setup and rapid iteration
 
 <tdd_rules>
 
-`--tdd` **When this flag is used**: Follow test-driven development implementation rules below
+**NO EXCEPTIONS - ONLY when this mode is enabled**: Follow test-driven development implementation rules below
 
 **Purpose**: Systematic test-driven development with comprehensive test coverage and quality assurance
 

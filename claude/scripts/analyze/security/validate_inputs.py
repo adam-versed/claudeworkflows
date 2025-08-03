@@ -18,6 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
+    from analysis_environment import validate_target_directory
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -208,8 +209,9 @@ class InputValidationAnalyzer:
             "validate_inputs.py", target_path
         )
 
-        if not os.path.exists(target_path):
-            result.set_error(f"Path does not exist: {target_path}")
+        is_valid, error_msg, target_dir = validate_target_directory(target_path)
+        if not is_valid:
+            result.set_error(error_msg)
             result.set_execution_time(start_time)
             return result.to_dict()
 

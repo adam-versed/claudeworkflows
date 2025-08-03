@@ -24,8 +24,8 @@ class PatternMatch:
     is_language_feature: bool
 
 
-class ImprovedPatternDetector:
-    """Enhanced pattern detection that filters out language syntax."""
+class ArchitecturalPatternDetector:
+    """Detects architectural patterns while filtering out language syntax noise."""
 
     def __init__(self):
         # Architectural patterns (actual design patterns)
@@ -129,7 +129,7 @@ class ImprovedPatternDetector:
             },
         }
 
-        # Language features that are NOT architectural patterns
+        # Language features that are NOT architectural patterns - Extended for all supported languages
         self.language_features = {
             "decorators": {
                 "patterns": [r"@\w+", r"@\w+\(.*\)"],
@@ -142,19 +142,92 @@ class ImprovedPatternDetector:
                 "description": "JSDoc documentation",
             },
             "comments": {
-                "patterns": [r"#.*", r"\/\/.*", r"\/\*.*?\*\/"],
-                "languages": ["python", "javascript", "typescript", "java", "csharp"],
-                "description": "Code comments",
+                "patterns": [
+                    r"#.*",
+                    r"\/\/.*",
+                    r"\/\*.*?\*\/",
+                    r"<!--.*?-->",
+                    r"\(\*.*?\*\)",
+                ],
+                "languages": [
+                    "python",
+                    "javascript",
+                    "typescript",
+                    "java",
+                    "csharp",
+                    "go",
+                    "rust",
+                    "php",
+                    "ruby",
+                    "swift",
+                    "kotlin",
+                    "cpp",
+                    "c",
+                ],
+                "description": "Code comments across languages",
             },
             "annotations": {
-                "patterns": [r"@\w+", r"@\w+\(.*\)"],
-                "languages": ["java", "csharp"],
-                "description": "Language annotations",
+                "patterns": [r"@\w+", r"@\w+\(.*\)", r"#\[.*?\]"],
+                "languages": ["java", "csharp", "rust", "swift", "kotlin"],
+                "description": "Language annotations and attributes",
             },
             "type_hints": {
-                "patterns": [r":\s*\w+", r"->\s*\w+"],
-                "languages": ["python", "typescript"],
-                "description": "Type annotations",
+                "patterns": [r":\s*\w+", r"->\s*\w+", r"<.*?>", r"var\s+\w+\s*:\s*\w+"],
+                "languages": [
+                    "python",
+                    "typescript",
+                    "swift",
+                    "kotlin",
+                    "rust",
+                    "go",
+                    "csharp",
+                ],
+                "description": "Type annotations and generics",
+            },
+            "generics": {
+                "patterns": [r"<[^>]+>", r"\w+<.*?>"],
+                "languages": [
+                    "java",
+                    "csharp",
+                    "typescript",
+                    "swift",
+                    "kotlin",
+                    "rust",
+                    "cpp",
+                ],
+                "description": "Generic type syntax",
+            },
+            "visibility_modifiers": {
+                "patterns": [
+                    r"public\s+",
+                    r"private\s+",
+                    r"protected\s+",
+                    r"internal\s+",
+                    r"fileprivate\s+",
+                ],
+                "languages": ["java", "csharp", "swift", "kotlin", "cpp"],
+                "description": "Access modifiers",
+            },
+            "package_imports": {
+                "patterns": [
+                    r"import\s+.*",
+                    r"from\s+.*\s+import",
+                    r"use\s+.*",
+                    r"#include\s*<.*?>",
+                ],
+                "languages": [
+                    "python",
+                    "javascript",
+                    "typescript",
+                    "java",
+                    "kotlin",
+                    "swift",
+                    "rust",
+                    "go",
+                    "cpp",
+                    "c",
+                ],
+                "description": "Import and include statements",
             },
         }
 
@@ -449,7 +522,7 @@ def main():
 
     args = parser.parse_args()
 
-    detector = ImprovedPatternDetector()
+    detector = ArchitecturalPatternDetector()
 
     try:
         with open(args.file_path, "r", encoding="utf-8") as f:

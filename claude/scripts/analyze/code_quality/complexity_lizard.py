@@ -8,19 +8,23 @@ import sys
 import subprocess
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Add utils to path
 script_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(script_dir / "utils"))
 
 from output_formatter import ResultFormatter  # noqa: E402
+from tech_stack_detector import TechStackDetector  # noqa: E402
 
 
 class LizardComplexityAnalyzer:
     """Wrapper around Lizard for code complexity analysis."""
 
     def __init__(self):
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
+
         # Thresholds based on industry standards
         self.thresholds = {
             "cyclomatic_complexity": {
@@ -48,35 +52,117 @@ class LizardComplexityAnalyzer:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def run_lizard(self, target_path: str) -> Dict[str, Any]:
-        """Run lizard and parse default output."""
-        try:
-            # Run lizard with default output
-            cmd = [
-                "lizard",
-                target_path,
-                "-C",
-                "999",  # Set high to get all results
-                "-L",
-                "999",  # Set high to get all results
-                "-a",
-                "999",  # Set high to get all results
+    def should_analyze_file(self, file_path: str, exclusion_patterns: list) -> bool:
+        """Check if file should be analyzed based on exclusion patterns."""
+        file_path_lower = file_path.lower()
+
+        # Check exclusion patterns
+        for pattern in exclusion_patterns:
+            if pattern in file_path_lower:
+                return False
+
+        return True
+
+    def get_filtered_files(self, target_path: str) -> List[str]:
+        """Get list of files to analyze after applying smart filtering."""
+        import os
+
+        files_to_analyze = []
+        exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
+
+        # Walk through directory structure and apply filtering
+        for root, dirs, files in os.walk(target_path):
+            # Skip directories based on exclusion patterns
+            dirs[:] = [
+                d
+                for d in dirs
+                if not any(
+                    pattern.replace("/**/*", "").replace("**/*", "")
+                    in os.path.join(root, d).lower()
+                    for pattern in exclusion_patterns
+                )
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            for file in files:
+                file_path = os.path.join(root, file)
+                if self.should_analyze_file(file_path, list(exclusion_patterns)):
+                    # Only include supported file extensions
+                    if any(
+                        file.endswith(ext)
+                        for ext in [
+                            ".py",
+                            ".js",
+                            ".ts",
+                            ".tsx",
+                            ".jsx",
+                            ".java",
+                            ".cpp",
+                            ".c",
+                            ".h",
+                            ".go",
+                            ".rs",
+                            ".swift",
+                            ".kt",
+                            ".cs",
+                            ".rb",
+                            ".php",
+                        ]
+                    ):
+                        files_to_analyze.append(file_path)
 
-            if result.returncode != 0 and not result.stdout:
-                return {"error": result.stderr}
+        return files_to_analyze
 
-            # Parse default output
-            return self.parse_default_output(result.stdout)
+    def run_lizard(self, target_path: str) -> Dict[str, Any]:
+        """Run lizard on filtered files with smart filtering."""
+        try:
+            # Get filtered list of files to analyze
+            files_to_analyze = self.get_filtered_files(target_path)
+
+            if not files_to_analyze:
+                return {"files": []}
+
+            all_output = ""
+            batch_size = (
+                100  # Process files in batches to avoid "Argument list too long"
+            )
+
+            # Process files in batches
+            for i in range(0, len(files_to_analyze), batch_size):
+                batch = files_to_analyze[i : i + batch_size]
+
+                # Run lizard on this batch
+                cmd = [
+                    "lizard",
+                    "-C",
+                    "999",  # Set high to get all results
+                    "-L",
+                    "999",  # Set high to get all results
+                    "-a",
+                    "999",  # Set high to get all results
+                ] + batch
+
+                result = subprocess.run(cmd, capture_output=True, text=True)
+
+                if result.returncode == 0:
+                    all_output += result.stdout + "\n"
+                elif result.stderr:
+                    # Continue with other batches even if one fails
+                    continue
+
+            # Parse combined output (no additional filtering needed since we pre-filtered)
+            return self.parse_default_output(all_output, [])
 
         except Exception as e:
             return {"error": str(e)}
 
-    def parse_default_output(self, output: str) -> Dict[str, Any]:
-        """Parse Lizard default output into structured data."""
+    def parse_default_output(
+        self, output: str, exclusion_patterns: list = None
+    ) -> Dict[str, Any]:
+        """Parse Lizard default output into structured data with filtering."""
         import re
+
+        if exclusion_patterns is None:
+            exclusion_patterns = []
 
         lines = output.strip().split("\n")
         files_data = {}
@@ -120,6 +206,10 @@ class LizardComplexityAnalyzer:
                 start_line = int(match.group(2))
                 end_line = int(match.group(3))
                 filepath = match.group(4)
+
+                # Apply smart filtering - skip files that should be excluded
+                if not self.should_analyze_file(filepath, exclusion_patterns):
+                    continue
 
                 if filepath not in files_data:
                     files_data[filepath] = {"filename": filepath, "functions": []}

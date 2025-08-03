@@ -35,10 +35,9 @@ class ComplexityAnalyzer:
             # Disable broken patterns that fire on every function/control structure
             # "long_function" - handled by analyze_function_length() method
             # "cyclomatic_complexity" - handled by analyze_cyclomatic_complexity() method
-            
             "deep_nesting": {
                 "pattern": r"(\s{12,}|\t{6,})(?:if|for|while|switch|try)",  # Increased threshold
-                "severity": "medium", 
+                "severity": "medium",
                 "description": "Very deep nesting detected (6+ levels) - consider refactoring",
             },
             "many_parameters": {
@@ -138,17 +137,19 @@ class ComplexityAnalyzer:
             "jest.config.js",
         }
 
-    def should_scan_file(self, file_path: Path, exclusion_patterns: list = None) -> bool:
+    def should_scan_file(
+        self, file_path: Path, exclusion_patterns: list = None
+    ) -> bool:
         """Determine if file should be scanned using smart filtering."""
         if exclusion_patterns is None:
             exclusion_patterns = []
-        
+
         # Use tech stack detector for smart filtering
         file_path_str = str(file_path).lower()
         for pattern in exclusion_patterns:
             if pattern in file_path_str:
                 return False
-        
+
         # Additional basic checks for minified files
         filename = file_path.name.lower()
         if (
@@ -379,7 +380,9 @@ class ComplexityAnalyzer:
 
             for match in matches:
                 # Apply framework-specific exclusions for magic_numbers
-                if pattern_name == "magic_numbers" and hasattr(self, 'framework_exclusions'):
+                if pattern_name == "magic_numbers" and hasattr(
+                    self, "framework_exclusions"
+                ):
                     if self._should_exclude_magic_number(match, content, file_path):
                         continue
 
@@ -404,16 +407,18 @@ class ComplexityAnalyzer:
             pass
 
         return findings
-    
-    def _should_exclude_magic_number(self, match, content: str, file_path: Path) -> bool:
+
+    def _should_exclude_magic_number(
+        self, match, content: str, file_path: Path
+    ) -> bool:
         """Check if a magic number should be excluded based on framework context."""
         matched_text = match.group(0)
-        
+
         # Get surrounding context (50 chars before and after)
         start = max(0, match.start() - 50)
         end = min(len(content), match.end() + 50)
         context = content[start:end]
-        
+
         # Check against all framework exclusion patterns
         for exclusion_category in self.framework_exclusions.values():
             for exclusion_pattern in exclusion_category:
@@ -422,46 +427,69 @@ class ComplexityAnalyzer:
                         return True
                 except re.error:
                     continue
-        
+
         # Additional context-based exclusions
         file_ext = file_path.suffix.lower()
-        
+
         # Exclude CSS/styling context
-        if file_ext in ['.css', '.scss', '.less']:
+        if file_ext in [".css", ".scss", ".less"]:
             return True
-            
+
         # Enhanced CSS class detection
         # Check if number is part of Tailwind-style class names
-        tailwind_pattern = r'(?:bg|text|border|ring|shadow|p|m|w|h|gap|space|inset|top|right|bottom|left|z|opacity|scale|rotate|skew|translate)-[^"\']*?' + re.escape(matched_text) + r'[^"\']*?'
+        tailwind_pattern = (
+            r'(?:bg|text|border|ring|shadow|p|m|w|h|gap|space|inset|top|right|bottom|left|z|opacity|scale|rotate|skew|translate)-[^"\']*?'
+            + re.escape(matched_text)
+            + r'[^"\']*?'
+        )
         if re.search(tailwind_pattern, context):
             return True
-            
+
         # Exclude if in string literals that contain CSS-like patterns
         css_string_patterns = [
-            r'["\'][^"\']*(?:bg|text|border|ring|shadow|hover|focus|active)-[^"\']*?' + re.escape(matched_text) + r'[^"\']*?["\']',
-            r'["\'][^"\']*\b' + re.escape(matched_text) + r'(?:px|em|rem|%|vh|vw)\b[^"\']*?["\']',
-            r'["\'][^"\']*#[0-9a-fA-F]*?' + re.escape(matched_text) + r'[0-9a-fA-F]*?["\']'
+            r'["\'][^"\']*(?:bg|text|border|ring|shadow|hover|focus|active)-[^"\']*?'
+            + re.escape(matched_text)
+            + r'[^"\']*?["\']',
+            r'["\'][^"\']*\b'
+            + re.escape(matched_text)
+            + r'(?:px|em|rem|%|vh|vw)\b[^"\']*?["\']',
+            r'["\'][^"\']*#[0-9a-fA-F]*?'
+            + re.escape(matched_text)
+            + r'[0-9a-fA-F]*?["\']',
         ]
-        
+
         for pattern in css_string_patterns:
             if re.search(pattern, context):
                 return True
-            
+
         # Exclude if in className or style props (React/JSX)
-        jsx_context = re.search(r'(?:className|style)\s*=\s*["\'][^"\']*\b' + re.escape(matched_text) + r'\b', context)
+        jsx_context = re.search(
+            r'(?:className|style)\s*=\s*["\'][^"\']*\b'
+            + re.escape(matched_text)
+            + r"\b",
+            context,
+        )
         if jsx_context:
             return True
-            
+
         # Exclude SVG path data (like the d attribute values)
-        svg_path_context = re.search(r'd\s*=\s*["\'][^"\']*\b' + re.escape(matched_text) + r'\b[^"\']*["\']', context)
+        svg_path_context = re.search(
+            r'd\s*=\s*["\'][^"\']*\b' + re.escape(matched_text) + r'\b[^"\']*["\']',
+            context,
+        )
         if svg_path_context:
             return True
-            
+
         # Exclude numbers in SVG/XML attributes
-        svg_attr_context = re.search(r'(?:viewBox|x|y|width|height|cx|cy|r|x1|y1|x2|y2|dx|dy)\s*=\s*["\'][^"\']*\b' + re.escape(matched_text) + r'\b', context)
+        svg_attr_context = re.search(
+            r'(?:viewBox|x|y|width|height|cx|cy|r|x1|y1|x2|y2|dx|dy)\s*=\s*["\'][^"\']*\b'
+            + re.escape(matched_text)
+            + r"\b",
+            context,
+        )
         if svg_attr_context:
             return True
-            
+
         return False
 
     def get_exclude_dirs(self, exclusion_patterns: set) -> set:
@@ -478,74 +506,99 @@ class ComplexityAnalyzer:
             # Handle simple directory patterns
             elif "/" not in pattern and not pattern.startswith("*"):
                 exclude_dirs.add(pattern)
-        
+
         # Add common directories that should always be excluded
-        exclude_dirs.update({
-            "node_modules", ".git", "__pycache__", "venv", ".venv", 
-            "coverage", "dist", "build", ".expo", ".next", ".nyc_output",
-            "todos", "worktrees", ".worktrees", "tmp", "temp"
-        })
-        
+        exclude_dirs.update(
+            {
+                "node_modules",
+                ".git",
+                "__pycache__",
+                "venv",
+                ".venv",
+                "coverage",
+                "dist",
+                "build",
+                ".expo",
+                ".next",
+                ".nyc_output",
+                "todos",
+                "worktrees",
+                ".worktrees",
+                "tmp",
+                "temp",
+            }
+        )
+
         return exclude_dirs
 
-    def get_framework_specific_exclusions(self, target_path: str) -> Dict[str, Set[str]]:
+    def get_framework_specific_exclusions(
+        self, target_path: str
+    ) -> Dict[str, Set[str]]:
         """Get framework-specific pattern exclusions based on detected tech stack."""
         # Detect tech stacks for the target path
         self.detected_tech_stacks = self.tech_detector.detect_tech_stack(target_path)
-        
+
         exclusions = {
             "magic_numbers_context": set(),
             "css_classes": set(),
-            "framework_constants": set()
+            "framework_constants": set(),
         }
-        
+
         for tech_stack in self.detected_tech_stacks:
             if tech_stack in ["react_native_expo", "next_js", "react"]:
                 # CSS/Tailwind exclusions for React-based projects
-                exclusions["css_classes"].update({
-                    # Tailwind color scales
-                    r"(?:bg|text|border|ring|shadow)-(?:gray|red|blue|green|yellow|purple|pink|indigo|cyan|teal|orange|amber|lime|emerald|sky|violet|fuchsia|rose|slate|zinc|neutral|stone)-(?:50|100|200|300|400|500|600|700|800|900)",
-                    # Tailwind spacing/sizing
-                    r"(?:p|m|w|h|gap|space|inset|top|right|bottom|left)-(?:\d+|px|0\.5|1\.5|2\.5|3\.5)",
-                    # Tailwind z-index, opacity, etc.
-                    r"(?:z|opacity|scale|rotate|skew|translate)-\d+",
-                    # CSS pixel values in JSX
-                    r"(?<=[\"\'])\d+px(?=[\"\'])",
-                    # React/CSS custom properties
-                    r"(?<=[\"\'])--[\w-]+:\s*\d+(?=[\"\'])"
-                })
-                
+                exclusions["css_classes"].update(
+                    {
+                        # Tailwind color scales
+                        r"(?:bg|text|border|ring|shadow)-(?:gray|red|blue|green|yellow|purple|pink|indigo|cyan|teal|orange|amber|lime|emerald|sky|violet|fuchsia|rose|slate|zinc|neutral|stone)-(?:50|100|200|300|400|500|600|700|800|900)",
+                        # Tailwind spacing/sizing
+                        r"(?:p|m|w|h|gap|space|inset|top|right|bottom|left)-(?:\d+|px|0\.5|1\.5|2\.5|3\.5)",
+                        # Tailwind z-index, opacity, etc.
+                        r"(?:z|opacity|scale|rotate|skew|translate)-\d+",
+                        # CSS pixel values in JSX
+                        r"(?<=[\"\'])\d+px(?=[\"\'])",
+                        # React/CSS custom properties
+                        r"(?<=[\"\'])--[\w-]+:\s*\d+(?=[\"\'])",
+                    }
+                )
+
                 # Framework constants
-                exclusions["framework_constants"].update({
-                    # React Hook timeouts/delays
-                    r"(?:setTimeout|setInterval|delay)\(\w+,\s*\d{3,}\)",
-                    # Port numbers in development
-                    r"(?:PORT|port).*?(?:3000|8080|5000|9000)",
-                    # HTTP status codes
-                    r"(?:status|code).*?(?:200|201|400|401|403|404|500)"
-                })
-                
+                exclusions["framework_constants"].update(
+                    {
+                        # React Hook timeouts/delays
+                        r"(?:setTimeout|setInterval|delay)\(\w+,\s*\d{3,}\)",
+                        # Port numbers in development
+                        r"(?:PORT|port).*?(?:3000|8080|5000|9000)",
+                        # HTTP status codes
+                        r"(?:status|code).*?(?:200|201|400|401|403|404|500)",
+                    }
+                )
+
             elif tech_stack in ["django", "flask"]:
                 # Python web framework exclusions
-                exclusions["framework_constants"].update({
-                    # Django settings
-                    r"DEBUG\s*=\s*\d+",
-                    r"MAX_LENGTH\s*=\s*\d+",
-                    # Common Python constants
-                    r"(?:TIMEOUT|DELAY|RETRY_COUNT)\s*=\s*\d+"
-                })
-                
+                exclusions["framework_constants"].update(
+                    {
+                        # Django settings
+                        r"DEBUG\s*=\s*\d+",
+                        r"MAX_LENGTH\s*=\s*\d+",
+                        # Common Python constants
+                        r"(?:TIMEOUT|DELAY|RETRY_COUNT)\s*=\s*\d+",
+                    }
+                )
+
             elif tech_stack == "java_maven" or tech_stack == "java_gradle":
                 # Java framework exclusions
-                exclusions["framework_constants"].update({
-                    # Spring Boot common ports
-                    r"server\.port\s*=\s*\d+",
-                    # JPA/Hibernate constants
-                    r"@Column\(length\s*=\s*\d+\)",
-                    # Test timeouts
-                    r"@Timeout\(\d+\)"
-                })
-                
+                exclusions["framework_constants"].update(
+                    {
+                        # Spring Boot common ports
+                        r"server\.port\s*=\s*\d+",
+                        # JPA/Hibernate constants
+                        r"@Column\(length\s*=\s*\d+\)",
+                        # Test timeouts
+                        r"@Timeout\(\d+\)",
+                    }
+                )
+
         return exclusions
 
     def scan_directory(self, target_path: str) -> List[Dict[str, Any]]:
@@ -559,13 +612,14 @@ class ComplexityAnalyzer:
             List of all findings
         """
         import os
+
         all_findings = []
         target = Path(target_path)
-        
+
         # Get exclusion patterns for smart filtering
         exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
         exclude_dirs = self.get_exclude_dirs(exclusion_patterns)
-        
+
         # Get framework-specific exclusions for magic numbers and other patterns
         self.framework_exclusions = self.get_framework_specific_exclusions(target_path)
 
@@ -577,7 +631,7 @@ class ComplexityAnalyzer:
             for root, dirs, files in os.walk(target_path):
                 # Filter directories in-place to prevent traversal into excluded dirs
                 dirs[:] = [d for d in dirs if d not in exclude_dirs]
-                
+
                 for file in files:
                     file_path = Path(os.path.join(root, file))
                     if self.should_scan_file(file_path, list(exclusion_patterns)):
