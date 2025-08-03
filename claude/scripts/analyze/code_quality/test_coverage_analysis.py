@@ -185,61 +185,21 @@ class TestCoverageAnalyzer:
             r"def test_",
         ]
 
-    def should_analyze_file(self, file_path: Path, exclusion_patterns: list) -> bool:
-        """Check if file should be analyzed based on exclusion patterns."""
-        file_path_str = str(file_path).lower()
+    def should_analyze_file(self, file_path: Path, base_path: str = "") -> bool:
+        """Check if file should be analyzed using universal exclusion system."""
+        return self.tech_detector.should_analyze_file(str(file_path), base_path)
 
-        # Check exclusion patterns
-        for pattern in exclusion_patterns:
-            if pattern in file_path_str:
-                return False
-
-        return True
-
-    def get_exclude_dirs(self, exclusion_patterns: set) -> set:
-        """Extract directory names from exclusion patterns."""
-        exclude_dirs = set()
-        for pattern in exclusion_patterns:
-            # Extract directory name from patterns like "node_modules/**/*"
-            if "/**/*" in pattern:
-                dir_name = pattern.replace("/**/*", "")
-                exclude_dirs.add(dir_name)
-            elif pattern.endswith("/**/*"):
-                dir_name = pattern.replace("/**/*", "")
-                exclude_dirs.add(dir_name)
-            # Handle simple directory patterns
-            elif "/" not in pattern and not pattern.startswith("*"):
-                exclude_dirs.add(pattern)
-
-        # Add common directories that should always be excluded
-        exclude_dirs.update(
-            {
-                "node_modules",
-                ".git",
-                "__pycache__",
-                "venv",
-                ".venv",
-                "coverage",
-                "dist",
-                "build",
-                ".expo",
-                ".next",
-                ".nyc_output",
-                "ios/Pods",
-                "android/build",
-            }
-        )
-
-        return exclude_dirs
+    def get_exclude_dirs(self, target_path: str) -> set:
+        """Get directory exclusions using universal exclusion system."""
+        exclusions = self.tech_detector.get_simple_exclusions(target_path)
+        return exclusions["directories"]
 
     def detect_languages(self, target_path: Path) -> Dict[str, int]:
         """Detect programming languages in the target directory with smart filtering."""
         language_counts = defaultdict(int)
 
-        # Get exclusion patterns for smart filtering
-        exclusion_patterns = self.tech_detector.get_exclusion_patterns(str(target_path))
-
-        exclude_dirs = self.get_exclude_dirs(exclusion_patterns)
+        # Get exclusion directories using universal exclusion system
+        exclude_dirs = self.get_exclude_dirs(str(target_path))
 
         # Map file extensions to languages
         ext_map = {
@@ -275,7 +235,7 @@ class TestCoverageAnalyzer:
                 file_path = Path(os.path.join(root, file))
 
                 # Apply smart filtering - skip files that should be excluded
-                if not self.should_analyze_file(file_path, exclusion_patterns):
+                if not self.should_analyze_file(file_path, str(target_path)):
                     continue
 
                 suffix = file_path.suffix.lower()
@@ -290,9 +250,8 @@ class TestCoverageAnalyzer:
         """Find test files for detected languages with smart filtering."""
         test_files = defaultdict(list)
 
-        # Get exclusion patterns for smart filtering
-        exclusion_patterns = self.tech_detector.get_exclusion_patterns(str(target_path))
-        exclude_dirs = self.get_exclude_dirs(exclusion_patterns)
+        # Get exclusion directories using universal exclusion system
+        exclude_dirs = self.get_exclude_dirs(str(target_path))
 
         # Use os.walk with directory filtering for efficiency
         for root, dirs, files in os.walk(target_path):
@@ -303,7 +262,7 @@ class TestCoverageAnalyzer:
                 file_path = Path(os.path.join(root, file))
 
                 # Apply smart filtering - skip files that should be excluded
-                if not self.should_analyze_file(file_path, exclusion_patterns):
+                if not self.should_analyze_file(file_path, str(target_path)):
                     continue
 
                 for lang in languages:
@@ -324,9 +283,8 @@ class TestCoverageAnalyzer:
         """Find source files for detected languages with smart filtering."""
         source_files = defaultdict(list)
 
-        # Get exclusion patterns for smart filtering
-        exclusion_patterns = self.tech_detector.get_exclusion_patterns(str(target_path))
-        exclude_dirs = self.get_exclude_dirs(exclusion_patterns)
+        # Get exclusion directories using universal exclusion system
+        exclude_dirs = self.get_exclude_dirs(str(target_path))
 
         # Use os.walk with directory filtering for efficiency
         for root, dirs, files in os.walk(target_path):
@@ -337,7 +295,7 @@ class TestCoverageAnalyzer:
                 file_path = Path(os.path.join(root, file))
 
                 # Apply smart filtering - skip files that should be excluded
-                if not self.should_analyze_file(file_path, exclusion_patterns):
+                if not self.should_analyze_file(file_path, str(target_path)):
                     continue
 
                 for lang in languages:

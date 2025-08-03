@@ -314,16 +314,20 @@ class ArchitecturalPatternDetector:
                 if confidence >= 0.7:
                     matches.append(
                         PatternMatch(
-                            pattern_type="architectural"
-                            if pattern_name in self.architectural_patterns
-                            else "anti",
+                            pattern_type=(
+                                "architectural"
+                                if pattern_name in self.architectural_patterns
+                                else "anti"
+                            ),
                             pattern_name=pattern_name,
                             severity=pattern_info["severity"],
                             description=pattern_info["description"],
                             line_number=line_num,
-                            context=lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            context=(
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                             confidence=confidence,
                             is_language_feature=False,
                         )

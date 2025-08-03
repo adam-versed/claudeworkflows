@@ -137,18 +137,11 @@ class ComplexityAnalyzer:
             "jest.config.js",
         }
 
-    def should_scan_file(
-        self, file_path: Path, exclusion_patterns: list = None
-    ) -> bool:
-        """Determine if file should be scanned using smart filtering."""
-        if exclusion_patterns is None:
-            exclusion_patterns = []
-
-        # Use tech stack detector for smart filtering
-        file_path_str = str(file_path).lower()
-        for pattern in exclusion_patterns:
-            if pattern in file_path_str:
-                return False
+    def should_scan_file(self, file_path: Path, base_path: str = "") -> bool:
+        """Determine if file should be scanned using universal exclusion system."""
+        # Use the universal exclusion system from TechStackDetector
+        if not self.tech_detector.should_analyze_file(str(file_path), base_path):
+            return False
 
         # Additional basic checks for minified files
         filename = file_path.name.lower()
@@ -394,9 +387,11 @@ class ComplexityAnalyzer:
                     "pattern_type": pattern_name,
                     "file_path": str(file_path),
                     "line_number": line_start,
-                    "line_content": lines[line_start - 1].strip()
-                    if line_start <= len(lines)
-                    else "",
+                    "line_content": (
+                        lines[line_start - 1].strip()
+                        if line_start <= len(lines)
+                        else ""
+                    ),
                     "matched_text": match.group(0)[:50],  # Limit length
                     "severity": pattern_info["severity"],
                     "description": pattern_info["description"],
@@ -492,44 +487,10 @@ class ComplexityAnalyzer:
 
         return False
 
-    def get_exclude_dirs(self, exclusion_patterns: set) -> set:
-        """Extract directory names from exclusion patterns."""
-        exclude_dirs = set()
-        for pattern in exclusion_patterns:
-            # Extract directory name from patterns like "node_modules/**/*"
-            if "/**/*" in pattern:
-                dir_name = pattern.replace("/**/*", "")
-                exclude_dirs.add(dir_name)
-            elif pattern.endswith("/**/*"):
-                dir_name = pattern.replace("/**/*", "")
-                exclude_dirs.add(dir_name)
-            # Handle simple directory patterns
-            elif "/" not in pattern and not pattern.startswith("*"):
-                exclude_dirs.add(pattern)
-
-        # Add common directories that should always be excluded
-        exclude_dirs.update(
-            {
-                "node_modules",
-                ".git",
-                "__pycache__",
-                "venv",
-                ".venv",
-                "coverage",
-                "dist",
-                "build",
-                ".expo",
-                ".next",
-                ".nyc_output",
-                "todos",
-                "worktrees",
-                ".worktrees",
-                "tmp",
-                "temp",
-            }
-        )
-
-        return exclude_dirs
+    def get_exclude_dirs(self, target_path: str) -> set:
+        """Get directory exclusions using universal exclusion system."""
+        exclusions = self.tech_detector.get_simple_exclusions(target_path)
+        return exclusions["directories"]
 
     def get_framework_specific_exclusions(
         self, target_path: str
@@ -616,15 +577,14 @@ class ComplexityAnalyzer:
         all_findings = []
         target = Path(target_path)
 
-        # Get exclusion patterns for smart filtering
-        exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
-        exclude_dirs = self.get_exclude_dirs(exclusion_patterns)
+        # Get exclusion directories using universal exclusion system
+        exclude_dirs = self.get_exclude_dirs(target_path)
 
         # Get framework-specific exclusions for magic numbers and other patterns
         self.framework_exclusions = self.get_framework_specific_exclusions(target_path)
 
         if target.is_file():
-            if self.should_scan_file(target, list(exclusion_patterns)):
+            if self.should_scan_file(target, target_path):
                 all_findings.extend(self.scan_file(target))
         elif target.is_dir():
             # Use os.walk with proper directory filtering
@@ -634,7 +594,7 @@ class ComplexityAnalyzer:
 
                 for file in files:
                     file_path = Path(os.path.join(root, file))
-                    if self.should_scan_file(file_path, list(exclusion_patterns)):
+                    if self.should_scan_file(file_path, target_path):
                         all_findings.extend(self.scan_file(file_path))
 
         return all_findings

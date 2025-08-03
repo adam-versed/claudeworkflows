@@ -29,6 +29,7 @@ try:
         validate_environment_config,
         log_debug,
     )
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -58,20 +59,20 @@ class HighLevelTracer:
             "total_metrics": defaultdict(int),
         }
 
+        # Initialize tech stack detector for smart filtering
+        tech_detector = TechStackDetector()
+
         # Limit analysis to prevent timeouts
         max_files = 20
         files_processed = 0
 
-        # Focus on Python files for initial implementation
+        # Focus on Python files for initial implementation with universal exclusion
         for file_path in target_dir.rglob("*.py"):
             if files_processed >= max_files:
                 break
 
-            # Skip common excludes
-            if any(
-                exclude in str(file_path)
-                for exclude in ["__pycache__", ".git", "venv", "env", "build", "dist"]
-            ):
+            # Use universal exclusion system
+            if not tech_detector.should_analyze_file(str(file_path), str(target_dir)):
                 continue
 
             try:

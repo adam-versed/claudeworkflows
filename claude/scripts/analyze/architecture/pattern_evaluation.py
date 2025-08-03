@@ -56,25 +56,18 @@ class PatternEvaluator:
         file_count = 0
 
         try:
-            # Get tech stack-aware filtering rules
-            exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
+            # Get tech stack-aware filtering rules using Universal Exclusion System
+            exclusions = self.tech_detector.get_simple_exclusions(target_path)
+            exclude_dirs = exclusions["directories"]
 
             # Walk through all files
             for root, dirs, files in os.walk(target_path):
-                # Skip directories based on tech stack detection
-                dirs[:] = [
-                    d
-                    for d in dirs
-                    if not self._should_skip_directory_smart(
-                        d, root, target_path, exclusion_patterns
-                    )
-                ]
+                # Apply universal exclusion system for directory filtering
+                dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
                 for file in files:
-                    if self._should_analyze_file_smart(
-                        file, root, target_path, exclusion_patterns
-                    ):
-                        file_path = os.path.join(root, file)
+                    file_path = os.path.join(root, file)
+                    if self.tech_detector.should_analyze_file(file_path, target_path):
                         relative_path = os.path.relpath(file_path, target_path)
 
                         try:
@@ -207,9 +200,11 @@ class PatternEvaluator:
                             "pattern": f"{pattern_type}_{pattern_name}",
                             "severity": pattern_info["severity"],
                             "message": f"{pattern_info['description']}: {pattern_name}",
-                            "context": lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            "context": (
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                         }
                     )
 
@@ -252,9 +247,11 @@ class PatternEvaluator:
                             "pattern": "long_method",
                             "severity": "medium",
                             "message": f"Very long method detected: {method_name} ({method_lines}+ lines)",
-                            "context": lines[method_start - 1].strip()
-                            if method_start <= len(lines)
-                            else "",
+                            "context": (
+                                lines[method_start - 1].strip()
+                                if method_start <= len(lines)
+                                else ""
+                            ),
                         }
                     )
                     break
@@ -280,9 +277,11 @@ class PatternEvaluator:
                         "pattern": "too_many_parameters",
                         "severity": "medium",
                         "message": f"Method has too many parameters: {param_count}",
-                        "context": lines[line_num - 1].strip()
-                        if line_num <= len(lines)
-                        else "",
+                        "context": (
+                            lines[line_num - 1].strip()
+                            if line_num <= len(lines)
+                            else ""
+                        ),
                     }
                 )
 

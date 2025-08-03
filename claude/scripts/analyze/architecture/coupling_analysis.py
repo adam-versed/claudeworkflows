@@ -17,6 +17,7 @@ sys.path.insert(0, str(script_dir / "utils"))
 
 try:
     from output_formatter import ResultFormatter, AnalysisResult
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -26,6 +27,8 @@ class CouplingAnalyzer:
     """Analyze coupling and dependencies in codebase architecture."""
 
     def __init__(self):
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
         # Import/dependency patterns for different languages
         self.import_patterns = {
             "python": {
@@ -124,37 +127,24 @@ class CouplingAnalyzer:
             ".hpp": "cpp",
         }
 
-        # Files to skip
-        self.skip_patterns = {
-            "node_modules",
-            ".git",
-            "__pycache__",
-            ".pytest_cache",
-            "venv",
-            "env",
-            ".venv",
-            "dist",
-            "build",
-            ".next",
-            "coverage",
-            ".nyc_output",
-            "target",
-            "vendor",
-        }
+        # Legacy skip patterns - now using Universal Exclusion System via tech_detector
+        # self.skip_patterns = {
+        #     "node_modules", ".git", "__pycache__", ".pytest_cache", "venv", "env",
+        #     ".venv", "dist", "build", ".next", "coverage", ".nyc_output", "target", "vendor",
+        # }
 
         # Dependency graph
         self.dependency_graph = defaultdict(set)
         self.reverse_graph = defaultdict(set)
         self.module_info = {}
 
-    def should_scan_file(self, file_path: Path) -> bool:
-        """Determine if file should be scanned."""
-        # Skip directories in skip_patterns
-        for part in file_path.parts:
-            if part in self.skip_patterns:
-                return False
+    def should_scan_file(self, file_path: Path, project_root: str = "") -> bool:
+        """Determine if file should be scanned using Universal Exclusion System."""
+        # Use Universal Exclusion System for smart filtering
+        if not self.tech_detector.should_analyze_file(str(file_path), project_root):
+            return False
 
-        # Check if we support this file type
+        # Check if we support this file type for coupling analysis
         suffix = file_path.suffix.lower()
         return suffix in self.extension_language_map
 
@@ -201,7 +191,7 @@ class CouplingAnalyzer:
         file_count = 0
 
         if target.is_file():
-            if self.should_scan_file(target):
+            if self.should_scan_file(target, target_path):
                 file_count = 1
                 module_name = self._get_module_name(target)
                 dependencies = self.extract_dependencies(target)
@@ -213,7 +203,9 @@ class CouplingAnalyzer:
                 }
         elif target.is_dir():
             for file_path in target.rglob("*"):
-                if file_path.is_file() and self.should_scan_file(file_path):
+                if file_path.is_file() and self.should_scan_file(
+                    file_path, target_path
+                ):
                     file_count += 1
                     module_name = self._get_module_name(file_path)
                     dependencies = self.extract_dependencies(file_path)

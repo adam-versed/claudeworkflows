@@ -52,40 +52,19 @@ class LizardComplexityAnalyzer:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def should_analyze_file(self, file_path: str, exclusion_patterns: list) -> bool:
-        """Check if file should be analyzed based on exclusion patterns."""
-        file_path_lower = file_path.lower()
-
-        # Check exclusion patterns
-        for pattern in exclusion_patterns:
-            if pattern in file_path_lower:
-                return False
-
-        return True
-
     def get_filtered_files(self, target_path: str) -> List[str]:
-        """Get list of files to analyze after applying smart filtering."""
+        """Get list of files to analyze using universal exclusion system."""
         import os
 
         files_to_analyze = []
-        exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
 
-        # Walk through directory structure and apply filtering
+        # Walk through directory structure and apply universal filtering
         for root, dirs, files in os.walk(target_path):
-            # Skip directories based on exclusion patterns
-            dirs[:] = [
-                d
-                for d in dirs
-                if not any(
-                    pattern.replace("/**/*", "").replace("**/*", "")
-                    in os.path.join(root, d).lower()
-                    for pattern in exclusion_patterns
-                )
-            ]
-
             for file in files:
                 file_path = os.path.join(root, file)
-                if self.should_analyze_file(file_path, list(exclusion_patterns)):
+
+                # Use universal exclusion system
+                if self.tech_detector.should_analyze_file(file_path, target_path):
                     # Only include supported file extensions
                     if any(
                         file.endswith(ext)
@@ -150,13 +129,13 @@ class LizardComplexityAnalyzer:
                     continue
 
             # Parse combined output (no additional filtering needed since we pre-filtered)
-            return self.parse_default_output(all_output, [])
+            return self.parse_default_output(all_output, [], target_path)
 
         except Exception as e:
             return {"error": str(e)}
 
     def parse_default_output(
-        self, output: str, exclusion_patterns: list = None
+        self, output: str, exclusion_patterns: list = None, target_path: str = ""
     ) -> Dict[str, Any]:
         """Parse Lizard default output into structured data with filtering."""
         import re
@@ -208,7 +187,9 @@ class LizardComplexityAnalyzer:
                 filepath = match.group(4)
 
                 # Apply smart filtering - skip files that should be excluded
-                if not self.should_analyze_file(filepath, exclusion_patterns):
+                if not self.tech_detector.should_analyze_file(
+                    filepath, target_path or ""
+                ):
                     continue
 
                 if filepath not in files_data:

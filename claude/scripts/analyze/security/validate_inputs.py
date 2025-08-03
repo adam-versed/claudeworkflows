@@ -19,6 +19,7 @@ try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
     from analysis_environment import validate_target_directory
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -30,6 +31,8 @@ class InputValidationAnalyzer:
     def __init__(self):
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
 
         # Input validation patterns
         self.validation_patterns = {
@@ -219,14 +222,21 @@ class InputValidationAnalyzer:
         file_count = 0
 
         try:
-            # Walk through all files
+            # Walk through all files using universal exclusion system
+            exclude_dirs = self.tech_detector.get_simple_exclusions(target_path)[
+                "directories"
+            ]
+
             for root, dirs, files in os.walk(target_path):
-                # Skip common build/dependency directories
-                dirs[:] = [d for d in dirs if not self._should_skip_directory(d)]
+                # Filter directories using universal exclusion system
+                dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
                 for file in files:
-                    if self._should_analyze_file(file):
-                        file_path = os.path.join(root, file)
+                    file_path = os.path.join(root, file)
+                    # Use universal exclusion system
+                    if self.tech_detector.should_analyze_file(
+                        file_path, target_path
+                    ) and self._should_analyze_file(file):
                         relative_path = os.path.relpath(file_path, target_path)
 
                         try:
@@ -410,9 +420,11 @@ class InputValidationAnalyzer:
                             "vuln_type": f"{category}_{pattern_name}",
                             "severity": pattern_info["severity"],
                             "message": f"{pattern_info['description']} ({pattern_name})",
-                            "context": lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            "context": (
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                             "category": category,
                             "injection_type": injection_type,
                         }
@@ -625,26 +637,6 @@ class InputValidationAnalyzer:
             )
 
         return recommendations[:5]
-
-    def _should_skip_directory(self, directory: str) -> bool:
-        """Check if directory should be skipped."""
-        skip_dirs = {
-            "node_modules",
-            ".git",
-            "__pycache__",
-            ".pytest_cache",
-            "build",
-            "dist",
-            ".next",
-            ".nuxt",
-            "coverage",
-            "venv",
-            "env",
-            ".env",
-            "vendor",
-            "logs",
-        }
-        return directory in skip_dirs or directory.startswith(".")
 
     def _should_analyze_file(self, filename: str) -> bool:
         """Check if file should be analyzed."""

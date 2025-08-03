@@ -21,6 +21,7 @@ try:
         Finding,
         AnalysisResult,
     )
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -57,27 +58,14 @@ def main():
         AnalysisType.ARCHITECTURE, "simple_trace.py", str(target_dir)
     )
 
-    # Simple analysis - just count files and basic info
-    python_files = list(target_dir.rglob("*.py"))
+    # Initialize tech stack detector for smart filtering
+    tech_detector = TechStackDetector()
 
-    # Filter out common excludes
-    python_files = [
-        f
-        for f in python_files
-        if not any(
-            exclude in str(f)
-            for exclude in [
-                "node_modules",
-                ".git",
-                "__pycache__",
-                ".pytest_cache",
-                "venv",
-                "env",
-                "build",
-                "dist",
-            ]
-        )
-    ]
+    # Simple analysis - just count files and basic info using universal exclusion
+    python_files = []
+    for file_path in target_dir.rglob("*.py"):
+        if tech_detector.should_analyze_file(str(file_path), str(target_dir)):
+            python_files.append(file_path)
 
     # Basic analysis
     for i, file_path in enumerate(python_files[:5]):  # Limit to 5 files

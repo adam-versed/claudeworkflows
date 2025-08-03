@@ -24,6 +24,7 @@ try:
         Finding,
         AnalysisResult,
     )
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -241,9 +242,11 @@ class ErrorPatternAnalyzer:
                             "line": line_num,
                             "severity": pattern_info["severity"],
                             "description": pattern_info["description"],
-                            "code_snippet": lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            "code_snippet": (
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                             "matched_text": match.group(0),
                         }
                     )
@@ -274,9 +277,11 @@ class ErrorPatternAnalyzer:
                             "line": line_num,
                             "severity": lang_config["severity"],
                             "description": f"Language-specific anti-pattern for {file_ext}",
-                            "code_snippet": lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            "code_snippet": (
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                             "matched_text": match.group(0),
                         }
                     )
@@ -404,7 +409,10 @@ def main():
         ".go",
     }
 
-    # Analyze all relevant files with limits
+    # Initialize tech stack detector for smart filtering
+    tech_detector = TechStackDetector()
+
+    # Analyze all relevant files with limits using universal exclusion
     all_findings = []
     files_analyzed = 0
 
@@ -414,22 +422,8 @@ def main():
             if files_analyzed >= max_files:
                 break
 
-            # Skip common exclude patterns
-            if any(
-                exclude in str(file_path)
-                for exclude in [
-                    "node_modules",
-                    ".git",
-                    "__pycache__",
-                    ".pytest_cache",
-                    "venv",
-                    "env",
-                    "build",
-                    "dist",
-                    "target",
-                    "bin",
-                ]
-            ):
+            # Use universal exclusion system
+            if not tech_detector.should_analyze_file(str(file_path), str(target_dir)):
                 continue
 
             # Skip files that are too large

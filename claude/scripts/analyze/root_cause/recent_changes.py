@@ -522,9 +522,9 @@ def main():
             finding_id=f"change_hotspot_{i}",
             title="File Change Hotspot",
             description=f"File {hotspot['file_path']} changed {hotspot['change_count']} times recently",
-            severity=Severity.HIGH
-            if hotspot["risk_level"] == "high"
-            else Severity.MEDIUM,
+            severity=(
+                Severity.HIGH if hotspot["risk_level"] == "high" else Severity.MEDIUM
+            ),
             file_path=hotspot["file_path"],
             evidence={
                 "change_count": hotspot["change_count"],
@@ -538,11 +538,11 @@ def main():
     result.set_execution_time(start_time)
     metadata = {
         "commits_analyzed": len(commits),
-        "risky_commits": len(
-            [r for r in risky_commits if r["risk_level"] in ["critical", "high"]]
-        )
-        if "risky_commits" in locals()
-        else 0,
+        "risky_commits": (
+            len([r for r in risky_commits if r["risk_level"] in ["critical", "high"]])
+            if "risky_commits" in locals()
+            else 0
+        ),
         "files_changed": len(changed_files) if "changed_files" in locals() else 0,
         "change_hotspots": len(hotspots) if "hotspots" in locals() else 0,
         "timing_issues": len(timing_issues) if "timing_issues" in locals() else 0,

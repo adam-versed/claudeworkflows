@@ -16,6 +16,7 @@ sys.path.insert(0, str(script_dir / "utils"))
 
 try:
     from output_formatter import ResultFormatter, AnalysisResult
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -25,6 +26,8 @@ class DatabaseProfiler:
     """Analyze database usage patterns for performance issues."""
 
     def __init__(self):
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
         # N+1 Query patterns
         self.n_plus_one_patterns = {
             "loop_query": {
@@ -217,9 +220,9 @@ class DatabaseProfiler:
                 "pattern_type": pattern_name,
                 "file_path": str(file_path),
                 "line_number": line_start,
-                "line_content": lines[line_start - 1].strip()
-                if line_start <= len(lines)
-                else "",
+                "line_content": (
+                    lines[line_start - 1].strip() if line_start <= len(lines) else ""
+                ),
                 "context": "\n".join(context_lines),
                 "matched_text": match.group(0)[:100],  # Limit length
                 "severity": pattern_info["severity"],

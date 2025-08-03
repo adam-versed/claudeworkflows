@@ -16,6 +16,7 @@ sys.path.insert(0, str(script_dir / "utils"))
 
 try:
     from output_formatter import ResultFormatter, AnalysisResult
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -25,6 +26,8 @@ class SecretDetector:
     """Detect hardcoded secrets and credentials in source code."""
 
     def __init__(self):
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
         # Common secret patterns (simplified for prototype)
         self.patterns = {
             "password": {
@@ -155,12 +158,16 @@ class SecretDetector:
                             "pattern_type": pattern_name,
                             "file_path": str(file_path),
                             "line_number": line_start,
-                            "line_content": lines[line_start - 1].strip()
-                            if line_start <= len(lines)
-                            else "",
-                            "matched_value": secret_value[:20] + "..."
-                            if len(secret_value) > 20
-                            else secret_value,
+                            "line_content": (
+                                lines[line_start - 1].strip()
+                                if line_start <= len(lines)
+                                else ""
+                            ),
+                            "matched_value": (
+                                secret_value[:20] + "..."
+                                if len(secret_value) > 20
+                                else secret_value
+                            ),
                             "severity": pattern_info["severity"],
                             "description": pattern_info["description"],
                         }

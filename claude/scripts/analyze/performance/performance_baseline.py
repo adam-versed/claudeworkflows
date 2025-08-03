@@ -23,6 +23,7 @@ try:
         ResultFormatter,
         AnalysisResult,
     )
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -34,6 +35,8 @@ class PerformanceBaseliner:
     def __init__(self):
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
 
         # Language-specific performance testing commands
         self.perf_commands = {
@@ -186,9 +189,14 @@ class PerformanceBaseliner:
             "file_type_distribution": defaultdict(int),
         }
 
+        # Get exclusion directories using universal exclusion system
+        exclude_dirs = self.tech_detector.get_simple_exclusions(target_path)[
+            "directories"
+        ]
+
         for root, dirs, files in os.walk(target_path):
-            # Skip common build/dependency directories
-            dirs[:] = [d for d in dirs if not self._should_skip_directory(d)]
+            # Filter directories using universal exclusion system
+            dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
             depth = len(Path(root).relative_to(target_path).parts)
             structure_metrics["max_depth"] = max(structure_metrics["max_depth"], depth)
@@ -507,27 +515,6 @@ class PerformanceBaseliner:
             result.set_error(str(e))
             result.set_execution_time(start_time)
             return result.to_dict()
-
-    def _should_skip_directory(self, directory: str) -> bool:
-        """Check if directory should be skipped."""
-        skip_dirs = {
-            "node_modules",
-            ".git",
-            "__pycache__",
-            ".pytest_cache",
-            "build",
-            "dist",
-            ".next",
-            ".nuxt",
-            "coverage",
-            "venv",
-            "env",
-            ".env",
-            "vendor",
-            "logs",
-            "target",
-        }
-        return directory in skip_dirs or directory.startswith(".")
 
 
 def main():

@@ -19,6 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -30,6 +31,8 @@ class BottleneckAnalyzer:
     def __init__(self):
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
+        # Initialize tech stack detector for smart filtering
+        self.tech_detector = TechStackDetector()
 
         # CPU bottleneck patterns
         self.cpu_patterns = {
@@ -248,14 +251,21 @@ class BottleneckAnalyzer:
         file_count = 0
 
         try:
-            # Walk through all files
+            # Walk through all files using universal exclusion system
+            exclude_dirs = self.tech_detector.get_simple_exclusions(target_path)[
+                "directories"
+            ]
+
             for root, dirs, files in os.walk(target_path):
-                # Skip common build/dependency directories
-                dirs[:] = [d for d in dirs if not self._should_skip_directory(d)]
+                # Filter directories using universal exclusion system
+                dirs[:] = [d for d in dirs if d not in exclude_dirs]
 
                 for file in files:
-                    if self._should_analyze_file(file):
-                        file_path = os.path.join(root, file)
+                    file_path = os.path.join(root, file)
+                    # Use universal exclusion system
+                    if self.tech_detector.should_analyze_file(
+                        file_path, target_path
+                    ) and self._should_analyze_file(file):
                         relative_path = os.path.relpath(file_path, target_path)
 
                         try:
@@ -433,9 +443,11 @@ class BottleneckAnalyzer:
                             "bottleneck_type": f"{category}_{pattern_name}",
                             "severity": pattern_info["severity"],
                             "message": f"{pattern_info['description']} ({pattern_name})",
-                            "context": lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else "",
+                            "context": (
+                                lines[line_num - 1].strip()
+                                if line_num <= len(lines)
+                                else ""
+                            ),
                             "category": category,
                             "performance_impact": performance_impact,
                         }
@@ -465,9 +477,11 @@ class BottleneckAnalyzer:
                                     "bottleneck_type": "python_global_in_loop",
                                     "severity": "medium",
                                     "message": "Global variable access in loop may impact performance",
-                                    "context": lines[loop_line - 1].strip()
-                                    if loop_line <= len(lines)
-                                    else "",
+                                    "context": (
+                                        lines[loop_line - 1].strip()
+                                        if loop_line <= len(lines)
+                                        else ""
+                                    ),
                                     "category": "python",
                                     "performance_impact": "cpu_performance",
                                 }
@@ -486,9 +500,11 @@ class BottleneckAnalyzer:
                                         "bottleneck_type": "python_complex_comprehension",
                                         "severity": "low",
                                         "message": "Complex list comprehension may impact performance",
-                                        "context": lines[line_num - 1].strip()
-                                        if line_num <= len(lines)
-                                        else "",
+                                        "context": (
+                                            lines[line_num - 1].strip()
+                                            if line_num <= len(lines)
+                                            else ""
+                                        ),
                                         "category": "python",
                                         "performance_impact": "cpu_performance",
                                     }
@@ -659,9 +675,11 @@ class BottleneckAnalyzer:
                     {
                         "bottleneck": bottleneck.replace("_", " ").title(),
                         "count": count,
-                        "severity": "critical"
-                        if bottleneck_name in ["memory_leaks", "n_plus_one_queries"]
-                        else "high",
+                        "severity": (
+                            "critical"
+                            if bottleneck_name in ["memory_leaks", "n_plus_one_queries"]
+                            else "high"
+                        ),
                         "category": bottleneck.split("_")[0],
                     }
                 )
@@ -700,26 +718,6 @@ class BottleneckAnalyzer:
             recommendations.append("Consider performance profiling and load testing")
 
         return recommendations[:5]
-
-    def _should_skip_directory(self, directory: str) -> bool:
-        """Check if directory should be skipped."""
-        skip_dirs = {
-            "node_modules",
-            ".git",
-            "__pycache__",
-            ".pytest_cache",
-            "build",
-            "dist",
-            ".next",
-            ".nuxt",
-            "coverage",
-            "venv",
-            "env",
-            ".env",
-            "vendor",
-            "logs",
-        }
-        return directory in skip_dirs or directory.startswith(".")
 
     def _should_analyze_file(self, filename: str) -> bool:
         """Check if file should be analyzed."""

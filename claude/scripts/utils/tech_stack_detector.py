@@ -6,7 +6,7 @@ Automatically detects project technology stack and provides appropriate filterin
 
 import json
 from pathlib import Path
-from typing import Dict, List, Set, Any
+from typing import List, Set
 from dataclasses import dataclass
 
 
@@ -328,154 +328,230 @@ class TechStackDetector:
             # Direct file check
             return (project_root / pattern).exists()
 
-    def get_exclusion_patterns(self, project_path: str) -> Set[str]:
+    def get_simple_exclusions(self, project_path: str) -> dict:
         """
-        Get exclusion patterns for detected tech stacks.
-
-        Args:
-            project_path: Path to the project root
+        Get simple, reliable exclusion lists by tech stack.
 
         Returns:
-            Set of exclusion patterns to apply
+            dict with 'directories' and 'files' to exclude
         """
         detected_stacks = self.detect_tech_stack(project_path)
 
         # Universal exclusions (always apply)
-        universal_exclusions = {
-            ".git/**/*",
-            "**/.DS_Store",
-            "**/Thumbs.db",
-            "**/*.log",
-            "**/logs/**/*",
-            "**/.env",
-            "**/.env.*",
-            "**/coverage/**/*",
-            "**/.coverage",
-            "**/htmlcov/**/*",
-            "**/.idea/**/*",
-            "**/.vscode/**/*",
-            "**/tmp/**/*",
-            "**/temp/**/*",
+        excluded_dirs = {
+            ".git",
+            "__pycache__",
+            ".pytest_cache",
+            ".coverage",
+            "coverage",
+            ".nyc_output",
+            "logs",
+            "tmp",
+            "temp",
         }
-
-        # Combine exclusions from detected stacks
-        all_exclusions = universal_exclusions.copy()
-        for stack_id in detected_stacks:
-            if stack_id in self.tech_stacks:
-                all_exclusions.update(self.tech_stacks[stack_id].exclude_patterns)
-
-        return all_exclusions
-
-    def get_source_patterns(self, project_path: str) -> Set[str]:
-        """
-        Get source code patterns for detected tech stacks.
-
-        Args:
-            project_path: Path to the project root
-
-        Returns:
-            Set of source patterns to analyze
-        """
-        detected_stacks = self.detect_tech_stack(project_path)
-
-        # Universal source patterns - aligned with documented supported languages
-        universal_sources = {
-            "**/*.py",  # Python
-            "**/*.js",  # JavaScript
-            "**/*.jsx",  # JavaScript
-            "**/*.ts",  # TypeScript
-            "**/*.tsx",  # TypeScript
-            "**/*.java",  # Java
-            "**/*.cs",  # C#
-            "**/*.go",  # Go
-            "**/*.rs",  # Rust
-            "**/*.php",  # PHP
-            "**/*.rb",  # Ruby
-            "**/*.swift",  # Swift
-            "**/*.kt",  # Kotlin
-            "**/*.scala",  # Scala
-            "**/*.cpp",  # C++
-            "**/*.cc",  # C++
-            "**/*.cxx",  # C++
-            "**/*.c",  # C
-            "**/*.h",  # C/C++
-            "**/*.hpp",  # C++
+        excluded_files = {
+            ".DS_Store",
+            "Thumbs.db",
+            ".env",
+            ".env.local",
+            ".env.production",
         }
+        excluded_extensions = {".log", ".tmp", ".cache"}
 
-        # Combine sources from detected stacks
-        all_sources = universal_sources.copy()
-        for stack_id in detected_stacks:
-            if stack_id in self.tech_stacks:
-                all_sources.update(self.tech_stacks[stack_id].source_patterns)
+        # Tech-specific exclusions
+        if "react_native_expo" in detected_stacks:
+            excluded_dirs.update(
+                {
+                    "node_modules",
+                    "Pods",
+                    "build",
+                    "android/build",
+                    "ios/build",
+                    ".expo",
+                    "web-build",
+                    "dist",
+                    ".next",
+                }
+            )
+            # Special handling for iOS Pods directory structure
+            excluded_dirs.add("ios/Pods")
 
-        return all_sources
+        if "node_js" in detected_stacks:
+            excluded_dirs.update({"node_modules", "dist", "build", ".next", ".nuxt"})
 
-    def get_analysis_report(self, project_path: str) -> Dict[str, Any]:
-        """
-        Generate a comprehensive analysis report.
+        if "python" in detected_stacks:
+            excluded_dirs.update(
+                {
+                    "__pycache__",
+                    ".pytest_cache",
+                    "venv",
+                    ".venv",
+                    "env",
+                    ".env",
+                    "site-packages",
+                    "dist",
+                    "build",
+                    ".tox",
+                }
+            )
+            excluded_extensions.update({".pyc", ".pyo", ".pyd"})
 
-        Args:
-            project_path: Path to the project root
+        if "java_maven" in detected_stacks or "java_gradle" in detected_stacks:
+            excluded_dirs.update({"target", "build", ".gradle", ".idea", ".settings"})
+            excluded_extensions.update({".class", ".jar", ".war"})
 
-        Returns:
-            Analysis report with detected stacks and recommendations
-        """
-        detected_stacks = self.detect_tech_stack(project_path)
-        exclusions = self.get_exclusion_patterns(project_path)
-        sources = self.get_source_patterns(project_path)
+        if "dotnet" in detected_stacks:
+            excluded_dirs.update({"bin", "obj", "packages", ".vs"})
+            excluded_extensions.update({".dll", ".exe", ".pdb"})
 
-        # Generate statistics
-        project_root = Path(project_path)
-        total_files = len(list(project_root.rglob("*"))) if project_root.exists() else 0
+        if "go" in detected_stacks:
+            excluded_dirs.update({"vendor", "bin"})
 
-        # Estimate filtered files
-        filtered_files = 0
-        for source_pattern in sources:
-            try:
-                filtered_files += len(list(project_root.glob(source_pattern)))
-            except Exception:
-                continue
+        if "rust" in detected_stacks:
+            excluded_dirs.update({"target", "Cargo.lock"})
+
+        if "php" in detected_stacks:
+            excluded_dirs.update({"vendor", "cache"})
+
+        if "ruby" in detected_stacks:
+            excluded_dirs.update({"vendor", "coverage"})
+
+        if "cpp" in detected_stacks:
+            excluded_dirs.update(
+                {
+                    "build",
+                    "cmake-build-debug",
+                    "cmake-build-release",
+                    ".vs",
+                    "Debug",
+                    "Release",
+                    "x64",
+                }
+            )
+            excluded_extensions.update({".o", ".obj", ".exe", ".dll", ".so", ".dylib"})
+
+        if "swift" in detected_stacks:
+            excluded_dirs.update({".build", "build", "DerivedData"})
+
+        if "kotlin" in detected_stacks:
+            excluded_dirs.update({"build", ".gradle", ".idea"})
+            excluded_extensions.update({".class", ".jar"})
 
         return {
-            "project_path": project_path,
-            "detected_tech_stacks": [
-                {
-                    "id": stack_id,
-                    "name": self.tech_stacks[stack_id].name,
-                    "primary_languages": list(
-                        self.tech_stacks[stack_id].primary_languages
-                    ),
-                }
-                for stack_id in detected_stacks
-            ],
-            "filtering_rules": {
-                "exclusion_patterns": sorted(list(exclusions)),
-                "source_patterns": sorted(list(sources)),
-                "total_exclusions": len(exclusions),
-                "total_source_patterns": len(sources),
-            },
-            "file_statistics": {
-                "total_files_in_project": total_files,
-                "estimated_files_to_analyze": filtered_files,
-                "estimated_filtering_ratio": round(
-                    (1 - filtered_files / max(total_files, 1)) * 100, 1
-                ),
-            },
-            "supported_languages": [
-                "Python",
-                "JavaScript",
-                "TypeScript",
-                "Java",
-                "C#",
-                "Go",
-                "Rust",
-                "PHP",
-                "Ruby",
-                "C/C++",
-                "Swift",
-                "Kotlin",
-            ],
+            "directories": excluded_dirs,
+            "files": excluded_files,
+            "extensions": excluded_extensions,
         }
+
+    def should_analyze_file(self, file_path: str, project_path: str = "") -> bool:
+        """
+        Universal method to determine if a file should be analyzed.
+        Combines simple directory exclusions with content-based detection.
+
+        Args:
+            file_path: Path to the file to check
+            project_path: Project root path (for relative path calculation)
+
+        Returns:
+            True if file should be analyzed, False if it should be excluded
+        """
+        import os
+        from pathlib import Path
+
+        # Get exclusion lists
+        exclusions = self.get_simple_exclusions(
+            project_path or os.path.dirname(file_path)
+        )
+
+        # Convert to Path object for easier manipulation
+        path_obj = Path(file_path)
+
+        # Check if file is in an excluded directory (dead simple - just check if name appears in path)
+        path_str = str(path_obj).lower()
+        for excluded_dir in exclusions["directories"]:
+            if excluded_dir.lower() in path_str:
+                return False
+
+        # Check excluded files by name
+        if path_obj.name.lower() in {f.lower() for f in exclusions["files"]}:
+            return False
+
+        # Check excluded extensions
+        if path_obj.suffix.lower() in exclusions["extensions"]:
+            return False
+
+        # Content-based detection for remaining files
+        return not self._is_generated_or_vendor_code(file_path)
+
+    def _is_generated_or_vendor_code(self, file_path: str) -> bool:
+        """
+        Detect if file is generated or vendor code based on content analysis.
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                # Read first few lines to check for generation markers
+                first_lines = [f.readline().strip() for _ in range(10)]
+                content_sample = "\n".join(first_lines)
+
+            # Check for generation markers
+            generation_markers = [
+                "// Generated by",
+                "/* Generated by",
+                "# Generated by",
+                "@generated",
+                "// This file is auto-generated",
+                "/* This file is auto-generated",
+                "# This file is auto-generated",
+                "// DO NOT EDIT",
+                "/* DO NOT EDIT",
+                "# DO NOT EDIT",
+                "// Code generated by",
+                "/* Code generated by",
+                "# Code generated by",
+                "// WARNING: This file is machine generated",
+                "This file was automatically generated",
+            ]
+
+            content_lower = content_sample.lower()
+            if any(marker.lower() in content_lower for marker in generation_markers):
+                return True
+
+            # Check for minified code (very long lines, no spaces around operators)
+            if any(len(line) > 500 and " " not in line[:100] for line in first_lines):
+                return True
+
+            # Check for vendor/library signatures
+            vendor_markers = [
+                "copyright",
+                "licence",
+                "license",
+                "all rights reserved",
+                "jquery",
+                "lodash",
+                "bootstrap",
+                "foundation",
+                "angular",
+                "react",
+                "vue",
+                "webpack",
+                "babel",
+            ]
+
+            if any(marker in content_lower for marker in vendor_markers):
+                # Additional check: if it's in a clearly non-vendor location, keep it
+                path_lower = file_path.lower()
+                if any(
+                    dev_dir in path_lower
+                    for dev_dir in ["/src/", "/app/", "/components/", "/pages/"]
+                ):
+                    return False
+                return True
+
+        except (IOError, UnicodeDecodeError, PermissionError):
+            # If we can't read the file, err on the side of analyzing it
+            pass
+
+        return False
 
 
 def main():
@@ -491,37 +567,30 @@ def main():
     args = parser.parse_args()
 
     detector = TechStackDetector()
+    detected_stacks = detector.detect_tech_stack(args.project_path)
+    exclusions = detector.get_simple_exclusions(args.project_path)
 
     if args.format == "json":
-        result = detector.get_analysis_report(args.project_path)
+        result = {"detected_tech_stacks": detected_stacks, "exclusions": exclusions}
         print(json.dumps(result, indent=2))
     else:
         # Human-readable report
-        report = detector.get_analysis_report(args.project_path)
-
         print(f"Tech Stack Analysis: {args.project_path}")
         print("=" * 50)
 
         print("\nDetected Tech Stacks:")
-        for stack in report["detected_tech_stacks"]:
-            print(f"  • {stack['name']} ({', '.join(stack['primary_languages'])})")
+        for stack_id in detected_stacks:
+            stack_config = detector.tech_stacks[stack_id]
+            print(
+                f"  • {stack_config.name} ({', '.join(stack_config.primary_languages)})"
+            )
 
-        print("\nFiltering Rules:")
-        print(f"  • {report['filtering_rules']['total_exclusions']} exclusion patterns")
-        print(
-            f"  • {report['filtering_rules']['total_source_patterns']} source patterns"
-        )
+        print("\nExclusion Summary:")
+        print(f"  • {len(exclusions['directories'])} excluded directories")
+        print(f"  • {len(exclusions['files'])} excluded files")
+        print(f"  • {len(exclusions['extensions'])} excluded extensions")
 
-        print("\nFile Statistics:")
-        print(f"  • Total files: {report['file_statistics']['total_files_in_project']}")
-        print(
-            f"  • Files to analyze: {report['file_statistics']['estimated_files_to_analyze']}"
-        )
-        print(
-            f"  • Filtering ratio: {report['file_statistics']['estimated_filtering_ratio']}%"
-        )
-
-        if not report["detected_tech_stacks"]:
+        if not detected_stacks:
             print("\n⚠️  No specific tech stack detected. Using universal patterns.")
 
 
