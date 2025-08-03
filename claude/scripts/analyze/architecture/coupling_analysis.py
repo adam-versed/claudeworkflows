@@ -42,6 +42,38 @@ class CouplingAnalyzer:
             },
             "java": {"pattern": r"import\s+([^;]+);", "groups": [1]},
             "csharp": {"pattern": r"using\s+([^;]+);", "groups": [1]},
+            "go": {
+                "pattern": r'import\s+(?:"([^"]+)"|`([^`]+)`)',
+                "groups": [1, 2],
+            },
+            "rust": {
+                "pattern": r"use\s+([^;]+);",
+                "groups": [1],
+            },
+            "php": {
+                "pattern": r"(?:use\s+([^;]+);|require_once\s+['\"]([^'\"]+)['\"]|include_once\s+['\"]([^'\"]+)['\"])",
+                "groups": [1, 2, 3],
+            },
+            "ruby": {
+                "pattern": r"(?:require\s+['\"]([^'\"]+)['\"]|require_relative\s+['\"]([^'\"]+)['\"])",
+                "groups": [1, 2],
+            },
+            "swift": {
+                "pattern": r"import\s+(\w+)",
+                "groups": [1],
+            },
+            "kotlin": {
+                "pattern": r"import\s+([^;]+)",
+                "groups": [1],
+            },
+            "cpp": {
+                "pattern": r"#include\s+[<\"]([^>\"]+)[>\"]",
+                "groups": [1],
+            },
+            "c": {
+                "pattern": r"#include\s+[<\"]([^>\"]+)[>\"]",
+                "groups": [1],
+            },
         }
 
         # Coupling anti-patterns
@@ -77,6 +109,19 @@ class CouplingAnalyzer:
             ".tsx": "typescript",
             ".java": "java",
             ".cs": "csharp",
+            ".go": "go",
+            ".rs": "rust",
+            ".php": "php",
+            ".rb": "ruby",
+            ".swift": "swift",
+            ".kt": "kotlin",
+            ".scala": "scala",
+            ".cpp": "cpp",
+            ".cc": "cpp",
+            ".cxx": "cpp",
+            ".c": "c",
+            ".h": "cpp",
+            ".hpp": "cpp",
         }
 
         # Files to skip

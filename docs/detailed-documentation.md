@@ -3,16 +3,19 @@
 ## Python Libraries and Dependencies
 
 ### Security Analysis
+
 - `bandit` - Security linting and vulnerability detection
 - `safety` - Known vulnerability scanning against CVE database
 - `semgrep` - Static analysis security scanner
 
 ### Performance Analysis
+
 - `psutil` - System and process monitoring utilities
 - `memory-profiler` - Memory usage profiling and tracking
 - `py-spy` - Python profiler for performance analysis (Unix only)
 
 ### Code Quality Analysis
+
 - `flake8` - Python style guide enforcement (PEP 8)
 - `pylint` - Comprehensive code analysis and linting
 - `radon` - Code complexity metrics (cyclomatic, halstead)
@@ -21,10 +24,12 @@
 - `mccabe` - Complexity checker for functions
 
 ### Architecture Analysis
+
 - `pydeps` - Dependency analysis and visualization
 - `networkx` - Graph analysis for architectural patterns
 
 ### Multi-Language Testing Framework Detection
+
 - `pytest` - Python testing framework and coverage analysis
 - `pytest-cov` - Python test coverage measurement
 - `jest` - JavaScript/TypeScript testing framework and coverage
@@ -48,31 +53,26 @@
 - `kover` - Kotlin code coverage engine
 
 ### Development Tools
+
 - `black` - Opinionated code formatting
 - `isort` - Import statement organization
 
 ### Core Dependencies
+
 - `requests` - HTTP requests for external API integrations
 - `python-dotenv` - Environment variable management
 
 ## MCP Tools Integration
 
 ### Available MCP Tools
+
 - **`sequential-thinking`** - Multi-step reasoning and analysis breakdown (enables `--seq` flag)
-- **`context7`** - Framework documentation and best practices (enables `--c7` flag)
-
-### MCP Tool Benefits
-- **Context7** - Framework-specific best practices and contextually accurate language detection (React, Vue, Django, Spring, etc.) via `--c7` flag
-- **Sequential Thinking** - Complex problem breakdown via `--seq` flag
-
-**Context7 ensures our analysis scripts provide contextually correct results** by understanding:
-- Framework conventions (React hooks, Django models, Spring annotations)
-- Language-specific patterns (Go interfaces, Rust ownership, TypeScript generics)
-- Build tool configurations (Maven, Gradle, npm, Cargo)
+- **`grep`** - Searches git repositories for matching code (enables `--gitgrep` flag)
 
 ## Installation Details
 
 ### Installation Options
+
 ```bash
 # Current directory (uses ./.claude/)
 ./install.sh
@@ -121,6 +121,7 @@ To safely remove Claude Code Workflows components while preserving your .claude 
 ```
 
 **Smart Uninstall Features:**
+
 - **📦 Safe Removal**: Only removes workflow components, preserves .claude structure and user files
 - **⚠️ Dependency Tracking**: Distinguishes pre-existing vs newly installed Python packages/MCP servers
 - **💾 Automatic Backups**: Creates backups of MCP configuration and claude.md before changes
@@ -128,6 +129,7 @@ To safely remove Claude Code Workflows components while preserving your .claude 
 - **📝 Installation Log**: Uses installation-log.txt to provide intelligent removal warnings
 
 The uninstaller will interactively prompt for each Python package and MCP server removal, showing whether each item was:
+
 - **🔧 Newly installed** by Claude Code Workflows (safer to remove)
 - **⚠️ Pre-existing** before installation (likely used by other projects - caution advised)
 
@@ -144,6 +146,7 @@ The security analysis provides comprehensive OWASP testing criteria coverage thr
 ```
 
 **Detected Issues:**
+
 - **A01: Injection** → SQL injection in authentication
 - **A02: Cryptographic Failures** → Hardcoded JWT secrets
 - **A03: Injection** → Command injection via eval()
@@ -174,18 +177,16 @@ claude/scripts/analyze/
 
 **Supported Languages:** Python, JavaScript, TypeScript, Java, C#, Go, Rust, PHP, Ruby, C/C++, Swift, Kotlin
 
-| Language       | Test Coverage            | Performance Baseline         | Import Analysis      | Bottleneck Detection     |
-| -------------- | ------------------------ | ---------------------------- | -------------------- | ------------------------ |
-| **Python**     | ✅ pytest, coverage      | ✅ cProfile, memory-profiler | ✅ import patterns   | ✅ AST analysis          |
-| **JavaScript** | ✅ jest, nyc, c8         | ✅ npm scripts, profiling    | ✅ import/require    | ✅ performance patterns  |
-| **TypeScript** | ✅ jest, nyc, c8         | ✅ npm scripts, profiling    | ✅ import patterns   | ✅ performance patterns  |
-| **Java**       | ✅ junit, jacoco         | ✅ maven/gradle, JFR         | ✅ import statements | ✅ performance patterns  |
-| **Go**         | ✅ go test, coverage     | ✅ go build, benchmarks      | ⚠️ Basic             | ✅ performance patterns  |
-| **Rust**       | ✅ cargo test, tarpaulin | ✅ cargo bench, flamegraph   | ⚠️ Basic             | ✅ performance patterns  |
-| **C#**         | ✅ dotnet test, coverlet | ✅ dotnet build, profiling   | ✅ using statements  | ✅ performance patterns  |
-| **Others**     | ⚠️ Basic detection       | ⚠️ Basic detection           | ❌                   | ✅ file pattern analysis |
-
-**Context7 Integration:** Use `--c7` flag with any analysis command for framework-specific best practices and contextually accurate language detection.
+| Language                      | Test Coverage                | Performance Baseline          | Import Analysis         | Bottleneck Detection    |
+| ----------------------------- | ---------------------------- | ----------------------------- | ----------------------- | ----------------------- |
+| **Python**                    | ✅ pytest, coverage          | ✅ cProfile, memory-profiler  | ✅ import patterns      | ✅ AST analysis         |
+| **JavaScript**                | ✅ jest, nyc, c8             | ✅ npm scripts, profiling     | ✅ import/require       | ✅ performance patterns |
+| **TypeScript**                | ✅ jest, nyc, c8             | ✅ npm scripts, profiling     | ✅ import patterns      | ✅ performance patterns |
+| **Java**                      | ✅ junit, jacoco             | ✅ maven/gradle, JFR          | ✅ import statements    | ✅ performance patterns |
+| **Go**                        | ✅ go test, coverage         | ✅ go build, benchmarks       | ✅ import patterns      | ✅ performance patterns |
+| **Rust**                      | ✅ cargo test, tarpaulin     | ✅ cargo bench, flamegraph    | ✅ use statements       | ✅ performance patterns |
+| **C#**                        | ✅ dotnet test, coverlet     | ✅ dotnet build, profiling    | ✅ using statements     | ✅ performance patterns |
+| **PHP/Ruby/C++/Swift/Kotlin** | ✅ Basic framework detection | ✅ Language-specific patterns | ✅ Full import analysis | ✅ performance patterns |
 
 ## Development Monitoring
 
@@ -196,12 +197,14 @@ The `setup-dev-monitoring` command establishes comprehensive development monitor
 ### Key Benefits
 
 **Centralized Development Control:**
+
 - **Unified logging** - All development services (frontend, backend, databases) log to a single aggregated file
 - **Service orchestration** - Start/stop all development services with simple commands
 - **Status monitoring** - Quick health checks across all project components
 - **Event capture** - Key development events automatically formatted for LLM analysis
 
 **LLM Integration Advantages:**
+
 - **Context-rich debugging** - Claude can read unified logs to understand full system state
 - **Intelligent troubleshooting** - Complete request/response flows captured for analysis
 - **Automated issue detection** - Patterns across services identified through log analysis
@@ -246,8 +249,10 @@ make clean
 ## Special Notes
 
 ### Todo workflow
-CC commands come from [badlogic](https://github.com/badlogic/claude-commands/blob/main/todo.md) - pairs well with the workflows, particularly /plan-* as they produce todo.md lists. It's a more efficient version of CC plan mode/todos, but ive modified it to use Claude.md rather than a bespoke file for project description.
+
+CC commands come from [badlogic](https://github.com/badlogic/claude-commands/blob/main/todo.md) - pairs well with the workflows, particularly /plan-\* as they produce todo.md lists. It's a more efficient version of CC plan mode/todos, but ive modified it to use Claude.md rather than a bespoke file for project description.
 
 ### Recommended Optionals
+
 - **Context7 MCP** best practice documentation to support code generation
 - **Sequential thinking MCP** use to breakdown complex tasks (can augment or cheaper alternative for non reasoning models)

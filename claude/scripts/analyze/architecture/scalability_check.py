@@ -19,6 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
+    from tech_stack_detector import TechStackDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -30,6 +31,7 @@ class ScalabilityAnalyzer:
     def __init__(self):
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
+        self.tech_detector = TechStackDetector()
 
         # Database scalability patterns
         self.db_patterns = {
@@ -204,13 +206,24 @@ class ScalabilityAnalyzer:
         file_count = 0
 
         try:
+            # Get tech stack-aware filtering rules
+            exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
+
             # Walk through all files
             for root, dirs, files in os.walk(target_path):
-                # Skip common build/dependency directories
-                dirs[:] = [d for d in dirs if not self._should_skip_directory(d)]
+                # Skip directories based on tech stack detection
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if not self._should_skip_directory_smart(
+                        d, root, target_path, exclusion_patterns
+                    )
+                ]
 
                 for file in files:
-                    if self._should_analyze_file(file):
+                    if self._should_analyze_file_smart(
+                        file, root, target_path, exclusion_patterns
+                    ):
                         file_path = os.path.join(root, file)
                         relative_path = os.path.relpath(file_path, target_path)
 
@@ -643,8 +656,59 @@ class ScalabilityAnalyzer:
 
         return recommendations[:5]  # Limit to top 5 recommendations
 
+    def _should_skip_directory_smart(
+        self,
+        directory: str,
+        current_root: str,
+        target_path: str,
+        exclusion_patterns: set,
+    ) -> bool:
+        """Smart directory filtering based on tech stack detection."""
+        # Create relative path for pattern matching
+        rel_path = os.path.relpath(os.path.join(current_root, directory), target_path)
+
+        # Check against exclusion patterns
+        for pattern in exclusion_patterns:
+            if self._matches_exclusion_pattern(rel_path, pattern):
+                return True
+
+        # Fallback to basic skip logic
+        return self._should_skip_directory(directory)
+
+    def _should_analyze_file_smart(
+        self,
+        filename: str,
+        current_root: str,
+        target_path: str,
+        exclusion_patterns: set,
+    ) -> bool:
+        """Smart file filtering based on tech stack detection."""
+        # Create relative path for pattern matching
+        rel_path = os.path.relpath(os.path.join(current_root, filename), target_path)
+
+        # Check against exclusion patterns
+        for pattern in exclusion_patterns:
+            if self._matches_exclusion_pattern(rel_path, pattern):
+                return False
+
+        # Check if it's a source file we should analyze
+        return self._should_analyze_file(filename)
+
+    def _matches_exclusion_pattern(self, file_path: str, pattern: str) -> bool:
+        """Check if file path matches exclusion pattern."""
+        import fnmatch
+
+        # Handle glob patterns
+        if "**" in pattern:
+            # Convert ** to * for fnmatch
+            pattern = pattern.replace("**", "*")
+
+        return fnmatch.fnmatch(file_path, pattern) or fnmatch.fnmatch(
+            file_path, pattern.replace("/", os.sep)
+        )
+
     def _should_skip_directory(self, directory: str) -> bool:
-        """Check if directory should be skipped."""
+        """Check if directory should be skipped (legacy method)."""
         skip_dirs = {
             "node_modules",
             ".git",
@@ -664,7 +728,7 @@ class ScalabilityAnalyzer:
         return directory in skip_dirs or directory.startswith(".")
 
     def _should_analyze_file(self, filename: str) -> bool:
-        """Check if file should be analyzed."""
+        """Check if file should be analyzed (legacy method)."""
         analyze_extensions = {
             ".py",
             ".js",

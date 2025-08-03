@@ -18,6 +18,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 try:
     from cross_platform import PlatformDetector
     from output_formatter import ResultFormatter
+    from tech_stack_detector import TechStackDetector
+    from improved_pattern_detection import ImprovedPatternDetector
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)
@@ -29,6 +31,8 @@ class PatternEvaluator:
     def __init__(self):
         self.platform = PlatformDetector()
         self.formatter = ResultFormatter()
+        self.tech_detector = TechStackDetector()
+        self.pattern_detector = ImprovedPatternDetector()
 
         # Design pattern signatures
         self.patterns = {
@@ -182,18 +186,29 @@ class PatternEvaluator:
         file_count = 0
 
         try:
+            # Get tech stack-aware filtering rules
+            exclusion_patterns = self.tech_detector.get_exclusion_patterns(target_path)
+
             # Walk through all files
             for root, dirs, files in os.walk(target_path):
-                # Skip common build/dependency directories
-                dirs[:] = [d for d in dirs if not self._should_skip_directory(d)]
+                # Skip directories based on tech stack detection
+                dirs[:] = [
+                    d
+                    for d in dirs
+                    if not self._should_skip_directory_smart(
+                        d, root, target_path, exclusion_patterns
+                    )
+                ]
 
                 for file in files:
-                    if self._should_analyze_file(file):
+                    if self._should_analyze_file_smart(
+                        file, root, target_path, exclusion_patterns
+                    ):
                         file_path = os.path.join(root, file)
                         relative_path = os.path.relpath(file_path, target_path)
 
                         try:
-                            file_findings = self._analyze_file_patterns(
+                            file_findings = self._analyze_file_patterns_improved(
                                 file_path, relative_path
                             )
                             file_count += 1
@@ -511,8 +526,151 @@ class PatternEvaluator:
             pattern, "Review pattern usage and consider refactoring"
         )
 
+    def _should_skip_directory_smart(
+        self,
+        directory: str,
+        current_root: str,
+        target_path: str,
+        exclusion_patterns: set,
+    ) -> bool:
+        """Smart directory filtering based on tech stack detection."""
+        # Create relative path for pattern matching
+        rel_path = os.path.relpath(os.path.join(current_root, directory), target_path)
+
+        # Check against exclusion patterns
+        for pattern in exclusion_patterns:
+            if self._matches_exclusion_pattern(rel_path, pattern):
+                return True
+
+        # Fallback to basic skip logic
+        return self._should_skip_directory(directory)
+
+    def _should_analyze_file_smart(
+        self,
+        filename: str,
+        current_root: str,
+        target_path: str,
+        exclusion_patterns: set,
+    ) -> bool:
+        """Smart file filtering based on tech stack detection."""
+        # Create relative path for pattern matching
+        rel_path = os.path.relpath(os.path.join(current_root, filename), target_path)
+
+        # Check against exclusion patterns
+        for pattern in exclusion_patterns:
+            if self._matches_exclusion_pattern(rel_path, pattern):
+                return False
+
+        # Check if it's a source file we should analyze
+        return self._should_analyze_file(filename)
+
+    def _matches_exclusion_pattern(self, file_path: str, pattern: str) -> bool:
+        """Check if file path matches exclusion pattern."""
+        import fnmatch
+
+        # Handle glob patterns
+        if "**" in pattern:
+            # Convert ** to * for fnmatch
+            pattern = pattern.replace("**", "*")
+
+        return fnmatch.fnmatch(file_path, pattern) or fnmatch.fnmatch(
+            file_path, pattern.replace("/", os.sep)
+        )
+
+    def _analyze_file_patterns_improved(
+        self, file_path: str, relative_path: str
+    ) -> List[Dict[str, Any]]:
+        """Improved pattern analysis using enhanced detection."""
+        findings = []
+
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            # Determine language
+            language = self._detect_language(file_path)
+
+            # Use improved pattern detection
+            pattern_matches = self.pattern_detector.detect_patterns(
+                content, file_path, language
+            )
+
+            # Convert to legacy format for compatibility
+            for match in pattern_matches:
+                findings.append(
+                    {
+                        "file": relative_path,
+                        "line": match.line_number,
+                        "pattern": f"{match.pattern_type}_{match.pattern_name}",
+                        "severity": match.severity,
+                        "message": f"{match.description} (confidence: {match.confidence:.2f})",
+                        "context": match.context,
+                        "confidence": match.confidence,
+                    }
+                )
+
+            # For Python files, add AST analysis
+            if language == "python":
+                ast_matches = self.pattern_detector.analyze_python_ast(
+                    content, file_path
+                )
+                for match in ast_matches:
+                    findings.append(
+                        {
+                            "file": relative_path,
+                            "line": match.line_number,
+                            "pattern": f"{match.pattern_type}_{match.pattern_name}",
+                            "severity": match.severity,
+                            "message": f"{match.description} (AST analysis)",
+                            "context": match.context,
+                            "confidence": match.confidence,
+                        }
+                    )
+
+        except Exception as e:
+            findings.append(
+                {
+                    "file": relative_path,
+                    "line": 0,
+                    "pattern": "file_error",
+                    "severity": "low",
+                    "message": f"Could not analyze file: {str(e)}",
+                    "context": "",
+                    "confidence": 0.0,
+                }
+            )
+
+        return findings
+
+    def _detect_language(self, file_path: str) -> str:
+        """Detect programming language from file extension."""
+        ext = os.path.splitext(file_path)[1].lower()
+        language_map = {
+            ".py": "python",
+            ".js": "javascript",
+            ".jsx": "javascript",
+            ".ts": "typescript",
+            ".tsx": "typescript",
+            ".java": "java",
+            ".cs": "csharp",
+            ".go": "go",
+            ".rs": "rust",
+            ".php": "php",
+            ".rb": "ruby",
+            ".swift": "swift",
+            ".kt": "kotlin",
+            ".scala": "scala",
+            ".cpp": "cpp",
+            ".cc": "cpp",
+            ".cxx": "cpp",
+            ".c": "c",
+            ".h": "cpp",
+            ".hpp": "cpp",
+        }
+        return language_map.get(ext, "unknown")
+
     def _should_skip_directory(self, directory: str) -> bool:
-        """Check if directory should be skipped."""
+        """Check if directory should be skipped (legacy method)."""
         skip_dirs = {
             "node_modules",
             ".git",
@@ -532,7 +690,7 @@ class PatternEvaluator:
         return directory in skip_dirs or directory.startswith(".")
 
     def _should_analyze_file(self, filename: str) -> bool:
-        """Check if file should be analyzed."""
+        """Check if file should be analyzed (legacy method)."""
         analyze_extensions = {
             ".py",
             ".js",
