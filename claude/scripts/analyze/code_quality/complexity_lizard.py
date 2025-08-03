@@ -14,7 +14,7 @@ from typing import Dict, Any
 script_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(script_dir / "utils"))
 
-from output_formatter import ResultFormatter
+from output_formatter import ResultFormatter  # noqa: E402
 
 
 class LizardComplexityAnalyzer:

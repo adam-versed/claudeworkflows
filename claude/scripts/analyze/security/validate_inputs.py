@@ -17,13 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 
 try:
     from cross_platform import PlatformDetector
-    from output_formatter import (
-        ResultFormatter,
-        AnalysisResult,
-        AnalysisType,
-        Finding,
-        Severity,
-    )
+    from output_formatter import ResultFormatter
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
     sys.exit(1)

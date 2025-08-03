@@ -29,14 +29,29 @@ class AnalysisRunner:
         current_script_dir = Path(__file__).parent
         self.script_dir = current_script_dir / "analyze"
         self.scripts = {
+            # Security analysis
             "security_auth": "security/check_auth.py",
             "security_vulnerabilities": "security/scan_vulnerabilities.py",
             "security_input_validation": "security/validate_inputs.py",
+            "security_secrets": "security/detect_secrets.py",
+            # Performance analysis
             "performance_frontend": "performance/analyze_frontend.py",
             "performance_bottlenecks": "performance/check_bottlenecks.py",
+            "performance_baseline": "performance/performance_baseline.py",
+            "performance_database": "performance/profile_database.py",
+            # Code quality analysis
             "code_quality": "code_quality/complexity_lizard.py",
+            "code_quality_metrics": "code_quality/complexity_metrics.py",
+            "code_quality_coverage": "code_quality/test_coverage_analysis.py",
+            # Architecture analysis
             "architecture_patterns": "architecture/pattern_evaluation.py",
             "architecture_scalability": "architecture/scalability_check.py",
+            "architecture_coupling": "architecture/coupling_analysis.py",
+            # Root cause analysis
+            "root_cause_errors": "root_cause/error_patterns.py",
+            "root_cause_changes": "root_cause/recent_changes.py",
+            "root_cause_trace": "root_cause/simple_trace.py",
+            "root_cause_execution": "root_cause/trace_execution.py",
         }
 
     def run_script(
@@ -55,7 +70,24 @@ class AnalysisRunner:
         # Only lizard script supports --summary flag
         if summary_mode and script_name == "code_quality":
             args.append("--summary")
-        if min_severity != "low":
+
+        # Only certain scripts support --min-severity flag
+        scripts_with_severity = [
+            "security_auth",
+            "security_vulnerabilities",
+            "security_input_validation",
+            "security_secrets",
+            "performance_frontend",
+            "performance_bottlenecks",
+            "performance_database",
+            "code_quality",
+            "code_quality_metrics",
+            "architecture_patterns",
+            "architecture_scalability",
+            "architecture_coupling",
+        ]
+
+        if min_severity != "low" and script_name in scripts_with_severity:
             args.extend(["--min-severity", min_severity])
 
         start_time = time.time()
@@ -201,6 +233,7 @@ class AnalysisRunner:
             "security_auth",
             "security_vulnerabilities",
             "security_input_validation",
+            "security_secrets",
         ]:
             if category in summary["by_category"]:
                 security_critical += (
@@ -224,7 +257,12 @@ class AnalysisRunner:
         # Performance recommendations
         perf_critical = 0
         perf_high = 0
-        for category in ["performance_frontend", "performance_bottlenecks"]:
+        for category in [
+            "performance_frontend",
+            "performance_bottlenecks",
+            "performance_baseline",
+            "performance_database",
+        ]:
             if category in summary["by_category"]:
                 perf_critical += (
                     summary["by_category"][category]
@@ -245,7 +283,14 @@ class AnalysisRunner:
             )
 
         # Code quality recommendations
-        quality_total = summary["by_category"].get("code_quality", {}).get("total", 0)
+        quality_total = 0
+        for category in [
+            "code_quality",
+            "code_quality_metrics",
+            "code_quality_coverage",
+        ]:
+            quality_total += summary["by_category"].get(category, {}).get("total", 0)
+
         if quality_total > 50:
             recommendations.append(
                 f"🏗 MEDIUM: Address code complexity issues to improve maintainability ({quality_total} findings)"
@@ -254,7 +299,11 @@ class AnalysisRunner:
         # Architecture recommendations
         arch_critical = 0
         arch_high = 0
-        for category in ["architecture_patterns", "architecture_scalability"]:
+        for category in [
+            "architecture_patterns",
+            "architecture_scalability",
+            "architecture_coupling",
+        ]:
             if category in summary["by_category"]:
                 arch_critical += (
                     summary["by_category"][category]
@@ -272,6 +321,21 @@ class AnalysisRunner:
         elif arch_high > 2:
             recommendations.append(
                 f"🔗 HIGH: Resolve {arch_high} architectural design issues"
+            )
+
+        # Root cause analysis recommendations
+        root_cause_total = 0
+        for category in [
+            "root_cause_errors",
+            "root_cause_changes",
+            "root_cause_trace",
+            "root_cause_execution",
+        ]:
+            root_cause_total += summary["by_category"].get(category, {}).get("total", 0)
+
+        if root_cause_total > 10:
+            recommendations.append(
+                f"🔍 MEDIUM: Investigate {root_cause_total} potential root cause indicators"
             )
 
         if not recommendations:

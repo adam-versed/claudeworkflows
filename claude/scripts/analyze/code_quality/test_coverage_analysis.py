@@ -22,8 +22,6 @@ try:
     from output_formatter import (
         ResultFormatter,
         AnalysisResult,
-        AnalysisType,
-        Finding,
         Severity,
     )
 except ImportError as e:

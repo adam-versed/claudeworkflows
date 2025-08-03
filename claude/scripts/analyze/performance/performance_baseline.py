@@ -22,9 +22,6 @@ try:
     from output_formatter import (
         ResultFormatter,
         AnalysisResult,
-        AnalysisType,
-        Finding,
-        Severity,
     )
 except ImportError as e:
     print(f"Error importing utilities: {e}", file=sys.stderr)
