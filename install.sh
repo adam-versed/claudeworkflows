@@ -403,8 +403,8 @@ copy_files() {
 
         echo "  Merge complete. Existing files preserved, new files added."
     elif [[ "${UPDATE_WORKFLOWS_ONLY:-false}" == "true" ]]; then
-        # Update workflows only: update built-in commands and scripts, preserve custom commands and everything else
-        log "Updating workflows only: built-in commands and scripts directories..."
+        # Update workflows only: update built-in commands, scripts, agents, templates, and rules, preserve custom commands and everything else
+        log "Updating workflows only: built-in commands, scripts, agents, templates, and rules directories..."
 
         # Update built-in commands while preserving custom commands
         if [[ -d "$source_dir/claude/commands" ]]; then
@@ -481,7 +481,28 @@ copy_files() {
             fi
         fi
 
-        echo "  Workflow update complete. Built-in commands and scripts updated, custom commands and other files preserved."
+        # Update agents directory
+        if [[ -d "$source_dir/claude/agents" ]]; then
+            log "  Updating agents directory..."
+            rm -rf "$INSTALL_DIR/agents"
+            cp -r "$source_dir/claude/agents" "$INSTALL_DIR/"
+        fi
+
+        # Update templates directory
+        if [[ -d "$source_dir/claude/templates" ]]; then
+            log "  Updating templates directory..."
+            rm -rf "$INSTALL_DIR/templates"
+            cp -r "$source_dir/claude/templates" "$INSTALL_DIR/"
+        fi
+
+        # Update rules directory
+        if [[ -d "$source_dir/claude/rules" ]]; then
+            log "  Updating rules directory..."
+            rm -rf "$INSTALL_DIR/rules"
+            cp -r "$source_dir/claude/rules" "$INSTALL_DIR/"
+        fi
+
+        echo "  Workflow update complete. Built-in commands, scripts, agents, templates, and rules updated, custom commands and other files preserved."
     else
         # Fresh install: copy everything
         cp -r "$source_dir/claude"/* "$INSTALL_DIR/"

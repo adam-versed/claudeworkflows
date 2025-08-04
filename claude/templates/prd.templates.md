@@ -51,7 +51,7 @@
 
 **Screen Architecture:** [List primary screens/views]
 
-**Design System:** [e.g., Tailwind CSS + shadcn/ui]
+**Visual Design System:** [e.g., Tailwind CSS + shadcn/ui]
 
 **Accessibility:** WCAG 2.2 AA compliance required
 

@@ -469,7 +469,7 @@ function Test-Installation {
     $errors = 0
 
     # Check main directories
-    $requiredDirs = @("commands", "scripts", "rules", "templates")
+    $requiredDirs = @("commands", "scripts", "rules", "templates", "agents")
     foreach ($dir in $requiredDirs) {
         $dirPath = Join-Path $ClaudePath $dir
         if (Test-Path $dirPath) {
