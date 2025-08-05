@@ -18,7 +18,7 @@ name: agent-name  # lowercase with hyphens
 description: Use proactively for [primary purpose and invocation guidance]. MUST BE USED for [critical scenarios].\n\nExamples:\n- <example>\n  Context: Situation where this agent is needed.\n  user: "User request that triggers this agent"\n  assistant: "I'll use the agent-name agent to handle this specific task"\n  <commentary>\n  Explanation of why this agent is appropriate for this scenario.\n  </commentary>\n</example>\n- <example>\n  Context: Another common use case.\n  user: "Different request needing this expertise"\n  assistant: "Let me invoke the agent-name agent to address this requirement"\n  <commentary>\n  Clear reasoning for agent selection.\n  </commentary>\n</example>
 model: opus  # opus (highly complex/organizational) > sonnet (complex execution) > haiku (simple/documentation)
 color: blue  # visual identifier
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite, NotebookRead, NotebookEdit, ExitPlanMode  # Optional - omit to inherit all tools. Select ONLY the minimum tools needed for the agent's specific tasks
+tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite, ExitPlanMode  # Optional - omit to inherit all tools. Select ONLY the minimum tools needed for the agent's specific tasks
 ---
 ```
 
@@ -176,6 +176,7 @@ Remember: [Mission statement that reinforces the agent's core purpose and approa
 3. **Specificity**: Concrete actions over abstract concepts
 4. **Structure**: Numbered lists and clear hierarchies
 5. **Emphasis**: Use **bold** for critical points sparingly
+6. **Agent References**: When referring to other agents, always use the `@agent-[agentspecname]` format (e.g., `@agent-quality-monitor`, `@agent-fullstack-developer`)
 
 ### Tool Selection
 
@@ -243,6 +244,7 @@ Before finalizing an agent:
 - [ ] Structure matches agent type (execution/coordination/analysis)
 - [ ] All sections use active voice
 - [ ] Output format is explicitly defined
+- [ ] Agent references use @agent-[name] format consistently
 - [ ] Tools are minimal and necessary
 - [ ] Total length is 50-80 lines
 - [ ] Includes memorable closing directive

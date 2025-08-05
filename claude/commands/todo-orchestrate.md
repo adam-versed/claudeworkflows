@@ -1,10 +1,10 @@
 ---
-description: "Build orchestration with automated multi-agent coordination from implementation plan to delivery"
+description: "Todo orchestration with automated multi-agent coordination from implementation plan to delivery"
 allowed-tools:
   ["Task", "Read", "Write", "Edit", "TodoWrite", "Bash", "Grep", "Glob", "LS"]
 ---
 
-# Build Orchestrate - Implementation Plan Execution
+# Todo Orchestrate - Implementation Plan Execution
 
 Execute complete build workflow using intelligent sub-agent coordination with quality gates.
 

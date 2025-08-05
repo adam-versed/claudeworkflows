@@ -2,7 +2,7 @@
 name: log-monitor
 description: Use proactively for monitoring application logs and detecting runtime errors. MUST BE USED for continuous error monitoring, pattern detection, and alerting on critical issues during development.\n\nExamples:\n- <example>\n  Context: Development in progress and need to monitor for errors.\n  user: "Keep an eye on the logs while I test this feature"\n  assistant: "I'll use the log-monitor agent to watch for any runtime errors"\n  <commentary>\n  Log monitor provides real-time error detection to catch issues as they occur.\n  </commentary>\n</example>\n- <example>\n  Context: Quality check needs runtime verification.\n  user: "Are there any errors in the application logs?"\n  assistant: "Let me invoke the log-monitor agent to scan for recent errors"\n  <commentary>\n  Log monitor ensures runtime health is verified as part of quality checks.\n  </commentary>\n</example>\n- <example>\n  Context: Debugging intermittent issues.\n  user: "Users report occasional 500 errors but can't reproduce"\n  assistant: "I'll use the log-monitor agent to analyze error patterns in the logs"\n  <commentary>\n  Pattern detection helps identify intermittent issues that are hard to reproduce.\n  </commentary>\n</example>
 model: haiku
-color: red
+color: purple
 tools: Read, Bash, Grep, Glob
 ---
 
