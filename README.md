@@ -96,11 +96,41 @@ See [detailed documentation](docs/detailed-documentation.md) for complete comman
 **Analysis:** `/analyze-security`, `/analyze-architecture`, `/analyze-performance`, `/analyze-code-quality`
 **Planning:** `/plan-solution`, `/plan-ux-prd`, `/plan-refactor`
 **Project Setup:** `/create-project` - Initialize new projects with [better-t-stack.dev](https://better-t-stack.dev/new) CLI
-**Implementation:** `/todo-branch`, `/todo-worktree`
+**Implementation:** `/todo-orchestrate`, `/todo-branch`, `/todo-worktree`
 **Fixes:** `/fix-bug`, `/fix-performance`, `/fix-test`
 **Hooks:** `/add-code-pretooluse-rules`, `/add-code-posttooluse-quality-gates`
 
 **Build Flags:** `--prototype` (rapid POC), `--tdd` (test-driven), `--c7` (framework best practices), `--seq` (complex breakdown)
+
+## 🤖 Todo-Orchestrate Workflow
+
+**Continuous build orchestration with intelligent sub-agent coordination:**
+
+```bash
+# Execute complete implementation plan with quality gates
+/todo-orchestrate implementation-plan.md
+
+# Rapid iteration with relaxed testing
+/todo-orchestrate implementation-plan.md --prototype
+```
+
+**8 Specialized Sub-Agents:**
+
+- 🔴 `@agent-cto` - Critical escalation and architecture review
+- 🔵 `@agent-fullstack-developer` - Cross-platform implementation
+- 🟠 `@agent-quality-monitor` - Dynamic quality gate detection
+- 🟡 `@agent-solution-validator` - Pre-implementation validation
+- 🟢 `@agent-plan-manager` - Task state and progress tracking
+- 🟣 `@agent-log-monitor` - Runtime error detection
+- ⚫ `@agent-documenter` - Documentation discovery
+- ⚫ `@agent-git-manager` - Version control operations
+
+**Key Features:**
+
+- **Continuous execution** - Runs until all tasks complete
+- **Dynamic quality gates** - Adapts to Node.js, Python, Rust, etc.
+- **Smart escalation** - 3 failures → CTO → 2 attempts → human
+- **Prototype mode** - `--prototype` skips tests for rapid iteration
 
 ## 📁 WIP Workflows
 
