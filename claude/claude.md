@@ -22,6 +22,7 @@
 - If user request contains flag `--tdd` → Resolve and read `tdd.modes.md`
 - If user request contains flag `--seq` → Resolve and read `sequential-thinking.modes.md`
 - If user request contains flag `--gitgrep` → Resolve and read `grep-search.modes.md`
+- If user request contains flag `--serena` → Resolve and read `serena.modes.md`
 
 ### Enforcement Rules:
 

@@ -50,7 +50,7 @@ Example:
   "messageId": "msg-123",
   "correlationId": "task-001",
   "timestamp": "2024-01-01T12:00:00Z",
-  "from": "@agent-build-orchestrator",
+  "from": "build orchestrator",
   "to": "@agent-fullstack-developer",
   "type": "TASK_ASSIGNMENT",
   "version": "1.0",
@@ -76,7 +76,7 @@ Example:
   "correlationId": "project-review",
   "timestamp": "2024-01-01T12:00:00Z",
   "from": "@agent-cto",
-  "to": "@agent-build-orchestrator",
+  "to": "build orchestrator",
   "type": "CODEBASE_REVIEW_REPORT",
   "version": "1.0",
   "payload": {

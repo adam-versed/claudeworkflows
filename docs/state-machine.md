@@ -10,13 +10,13 @@ This document formally defines the task lifecycle state machine for the build wo
 
 - **Description**: Task created but not yet assigned
 - **Entry**: Task creation by user or @agent-plan-manager
-- **Exit**: Assignment by @agent-build-orchestrator
+- **Exit**: Assignment by build orchestrator
 - **Special**: If implementing from planFile, @agent-cto performs codebase review before regular workflow
 - **Timeout**: 1 hour (alert if not picked up)
 
 ### assigned
 
-- **Description**: Task assigned to @agent-build-orchestrator
+- **Description**: Task assigned to build orchestrator
 - **Entry**: From pending via assignment
 - **Exit**: Start of planning phase
 - **Timeout**: 15 minutes (alert if not started)
@@ -130,7 +130,7 @@ stateDiagram-v2
 
 | From State     | To State       | Condition             | Actor                      |
 | -------------- | -------------- | --------------------- | -------------------------- |
-| pending        | assigned       | Task picked up        | @agent-build-orchestrator  |
+| pending        | assigned       | Task picked up        | build orchestrator  |
 | assigned       | planning       | Validation starts     | @agent-solution-validator  |
 | planning       | validated      | Approach approved     | @agent-solution-validator  |
 | validated      | in_progress    | Implementation starts | @agent-fullstack-developer |
@@ -147,7 +147,7 @@ stateDiagram-v2
 | planning         | planning         | Approach rejected (<3) | @agent-solution-validator |
 | quality_review   | in_progress      | Quality failed (<3)    | @agent-quality-monitor    |
 | committing       | in_progress      | Pre-commit failed (<3) | @agent-git-manager        |
-| any_state        | cto_intervention | 3 failures             | @agent-build-orchestrator |
+| any_state        | cto_intervention | 3 failures             | build orchestrator |
 | cto_intervention | previous_state   | CTO guidance           | @agent-cto                |
 | cto_intervention | human_escalation | 2 CTO attempts         | @agent-cto                |
 
@@ -211,7 +211,7 @@ if (stateFailures >= 3 && ctoAttempts === 0) {
 ### State Timeouts
 
 - Monitored by @agent-plan-manager
-- Alert @agent-build-orchestrator on timeout
+- Alert build orchestrator on timeout
 - Configurable per project
 - Not hard stops (warnings)
 
@@ -229,7 +229,7 @@ interface TimeMetrics {
 ### Timeout Actions
 
 1. **Warning**: Log and alert at 80% timeout
-2. **Alert**: Notify @agent-build-orchestrator at 100%
+2. **Alert**: Notify build orchestrator at 100%
 3. **Escalate**: Consider intervention at 150%
 
 ## Validation Rules

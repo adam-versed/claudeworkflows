@@ -6,7 +6,7 @@ This document defines the interaction rules, communication flows, and operationa
 
 ## Agent Roster
 
-1. **@agent-build-orchestrator** - Central workflow coordinator
+1. **build orchestrator** - Central workflow coordinator
 2. **@agent-plan-manager** - Task state and progress tracking
 3. **@agent-fullstack-developer** - Implementation across web/mobile
 4. **@agent-solution-validator** - Pre-implementation validation
@@ -27,7 +27,7 @@ This document defines the interaction rules, communication flows, and operationa
 
 ### Phase 1: Planning & Validation
 
-- @agent-build-orchestrator assigns to @agent-solution-validator
+- build orchestrator assigns to @agent-solution-validator
 - @agent-solution-validator reviews approach
 - @agent-documenter provides existing docs
 - Output: Approved technical approach
@@ -56,7 +56,7 @@ This document defines the interaction rules, communication flows, and operationa
 
 ### 1. Central Coordination
 
-- All agent communication flows through @agent-build-orchestrator
+- All agent communication flows through build orchestrator
 - No direct agent-to-agent communication except:
   - @agent-log-monitor → @agent-quality-monitor (error reports)
   - All agents → @agent-plan-manager (state updates)
@@ -64,7 +64,7 @@ This document defines the interaction rules, communication flows, and operationa
 ### 2. Task Assignment Flow
 
 ```
-User → @agent-build-orchestrator → @agent-plan-manager (create task)
+User → build orchestrator → @agent-plan-manager (create task)
                          ↓
             [If planFile] @agent-cto (codebase review)
                          ↓
@@ -88,7 +88,7 @@ Agent fails task (attempt 2)
       ↓
 Agent fails task (attempt 3)
       ↓
-@agent-build-orchestrator → @agent-cto (escalation)
+build orchestrator → @agent-cto (escalation)
                       ↓
                @agent-cto guides agent (attempt 1)
                       ↓
@@ -162,7 +162,7 @@ Agent fails task (attempt 3)
 
 ### CTO Intervention Process
 
-1. @agent-build-orchestrator provides context
+1. build orchestrator provides context
 2. CTO analyzes with "think harder"
 3. CTO guides failing agent
 4. Maximum 2 CTO attempts
@@ -183,7 +183,7 @@ Recommendation: [Suggested human action]
 
 ## Inter-Agent Dependencies
 
-### @agent-build-orchestrator depends on:
+### build orchestrator depends on:
 
 - @agent-plan-manager (task states)
 - All agents (task execution)
@@ -201,8 +201,8 @@ Recommendation: [Suggested human action]
 ### @agent-git-manager depends on:
 
 - @agent-quality-monitor (approval)
-- @agent-build-orchestrator (clearance)
-- Reports pre-commit failures back to @agent-build-orchestrator (not fixes them)
+- build orchestrator (clearance)
+- Reports pre-commit failures back to build orchestrator (not fixes them)
 
 ## Operational Guidelines
 

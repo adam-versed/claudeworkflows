@@ -1,0 +1,89 @@
+You can add external tools to opencode using the _Model Context Protocol_, or MCP. opencode supports both:
+
+- Local servers
+- And remote servers
+
+Once added, MCP tools are automatically available to the LLM alongside built-in tools.
+
+---
+
+## [Configure](#configure)
+
+You can define MCP servers in your opencode config under `mcp`.
+
+---
+
+### [Local](#local)
+
+Add local MCP servers using `"type": "local"` within the MCP object. Multiple MCP servers can be added. The key string for each server can be any arbitrary name.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-local-mcp-server": {
+      "type": "local",
+      "command": ["bun", "x", "my-mcp-command"],
+      "enabled": true,
+      "environment": {
+        "MY_ENV_VAR": "my_env_var_value"
+      }
+    },
+    "my-different-local-mcp-server": {
+      "type": "local",
+      "command": ["bun", "x", "my-other-mcp-command"],
+      "enabled": true
+    }
+  }
+}
+```
+
+You can also disable a server by setting `enabled` to `false`. This is useful if you want to temporarily disable a server without removing it from your config.
+
+---
+
+### [Remote](#remote)
+
+Add remote MCP servers under `mcp` with `"type": "remote"`.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Local and remote servers can be used together within the same `mcp` config object.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "my-local-mcp-server": {
+      "type": "local",
+      "command": ["bun", "x", "my-mcp-command"],
+      "enabled": true,
+      "environment": {
+        "MY_ENV_VAR": "my_env_var_value"
+      }
+    },
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      }
+    }
+  }
+}
+```
