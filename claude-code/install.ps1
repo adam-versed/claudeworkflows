@@ -284,7 +284,7 @@ function Install-PythonDependencies {
     Write-ColorOutput "Installing Python dependencies..." -Color $Colors.Yellow
     Write-Log "Starting Python dependencies installation"
 
-    $setupDir = Join-Path $SCRIPT_DIR "claude\scripts\setup"
+    $setupDir = Join-Path $SCRIPT_DIR "claude-code\scripts\setup"
     $requirementsPath = Join-Path $setupDir "requirements.txt"
 
     if (-not (Test-Path $requirementsPath)) {
@@ -383,7 +383,7 @@ function Copy-WorkflowFiles {
     Write-ColorOutput "Copying workflow files..." -Color $Colors.Yellow
     Write-Log "Starting workflow files copy"
 
-    $sourceClaudeDir = Join-Path $SCRIPT_DIR "claude"
+    $sourceClaudeDir = Join-Path $SCRIPT_DIR "claude-code"
 
     if (-not (Test-Path $sourceClaudeDir)) {
         Write-ColorOutput "[ERROR] Source claude directory not found: $sourceClaudeDir" -Color $Colors.Red
@@ -403,8 +403,11 @@ function Copy-WorkflowFiles {
             New-Item -ItemType Directory -Path $ClaudePath -Force | Out-Null
         }
 
-        # Copy all files and directories from claude/ to target/.claude/
-        $items = Get-ChildItem $sourceClaudeDir -Recurse
+        # Copy all files and directories from claude-code/ to target/.claude/, excluding docs folder
+        $items = Get-ChildItem $sourceClaudeDir -Recurse | Where-Object {
+            $relativePath = [System.IO.Path]::GetRelativePath($sourceClaudeDir, $_.FullName)
+            -not ($relativePath -like "docs\*" -or $relativePath -eq "docs")
+        }
         foreach ($item in $items) {
             $relativePath = [System.IO.Path]::GetRelativePath($sourceClaudeDir, $item.FullName)
             $targetPath = Join-Path $ClaudePath $relativePath
@@ -425,7 +428,7 @@ function Copy-WorkflowFiles {
 
         # Copy CLAUDE.md if it exists in root, otherwise copy claude.md as CLAUDE.md
         $rootClaudeFile = Join-Path $SCRIPT_DIR "CLAUDE.md"
-        $nestedClaudeFile = Join-Path $SCRIPT_DIR "claude\claude.md"
+        $nestedClaudeFile = Join-Path $SCRIPT_DIR "claude-code\claude.md"
         $targetClaudeFile = Join-Path $ClaudePath "CLAUDE.md"
 
         if (Test-Path $rootClaudeFile) {

@@ -4,131 +4,134 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is the Claude Code Workflows repository - a hybrid AI-automation system that provides specialized workflow commands, LLM actions, and Python analysis scripts for multi-function, just-in-time development automation.
+This is the Claude Code Workflows repository - a hybrid AI-automation system that provides specialized workflow commands, LLM actions, and Python analysis scripts for development automation. The system installs into `.claude/` directories and provides custom slash commands, agent orchestration, and quality gates.
 
-## Commands for Development
+## Common Development Tasks
 
-### Running Quality Checks
+### Installation and Setup
 
-Based on project type detected:
+```bash
+# Install to current directory (creates ./.claude/)
+./claude-code/install.sh
 
-**Node.js/TypeScript projects:**
+# Install globally for user (creates ~/.claude/)
+./claude-code/install.sh ~
 
-- Lint: `npm run lint` or `npm run check` (if biome is used)
-- Type check: `npm run type-check` or `npm run typecheck`
-- Build: `npm run build`
-- Test: `npm run test`
-- Format: `npm run format` or `npm run format:check`
+# Install with optional monitoring setup
+./claude-code/install.sh
+/setup-dev-monitoring  # After installation
+```
 
-**Python projects:**
+### Available Slash Commands
 
-- Lint: `flake8 .` or `pylint .` or `ruff check`
-- Test: `pytest`
-- Format: `black .` or `ruff format`
+The system provides numerous slash commands organized by category:
 
-**Rust projects:**
-
-- Lint: `cargo clippy`
-- Build: `cargo build`
-- Test: `cargo test`
-
-### Workflow Commands
-
-The repository provides specialized commands under `/claude/commands/`:
-
-- `/analyze-security` - Comprehensive security analysis following OWASP Top 10
-- `/analyze-architecture` - Architecture pattern detection and evaluation
-- `/analyze-performance` - Frontend and backend performance analysis
-- `/plan-solution` - Research and plan implementation approaches
-- `/todo-orchestrate` - Execute implementation plans with multi-agent coordination
-- `/create-project` - Initialize new projects using better-t-stack CLI
-- `/setup-dev-monitoring` - Setup unified development monitoring dashboard
+- **Analysis**: `/analyze-security`, `/analyze-architecture`, `/analyze-performance`, `/analyze-code-quality`
+- **Planning**: `/plan-solution`, `/plan-ux-prd`, `/plan-refactor`
+- **Implementation**: `/todo-orchestrate`, `/todo-branch`, `/todo-worktree`
+- **Fixes**: `/fix-bug`, `/fix-performance`
+- **Quality**: `/add-code-precommit-checks`, `/add-code-posttooluse-quality-gates`
 
 ### Build Flags
 
-Special modes can be activated with flags:
+Commands support various flags to modify behavior:
 
-- `--prototype` - Rapid prototyping mode (relaxed testing requirements)
-- `--tdd` - Test-driven development mode
-- `--seq` - Sequential thinking mode for complex problem breakdown
-- `--gitgrep` - Enhanced grep search mode
+- `--prototype`: Rapid prototyping mode (relaxes quality gates)
+- `--tdd`: Test-driven development mode
+- `--seq`: Sequential thinking for complex breakdowns
+- `--gitgrep`: Enhanced git repository search
 
-## High-Level Architecture
-
-### Agent System
-
-The repository implements a 9-agent orchestration system under `/claude/agents/`:
-
-1. **build orchestrator** (conceptual) - Coordinates tasks across agents via `/todo-orchestrate` command
-2. **@agent-fullstack-developer** - Implements features across web and mobile platforms
-3. **@agent-quality-monitor** - Dynamically detects tech stack and enforces quality gates
-4. **@agent-solution-validator** - Validates technical approaches before implementation
-5. **@agent-plan-manager** - Tracks task state and progress
-6. **@agent-log-monitor** - Monitors runtime errors in development logs
-7. **@agent-documenter** - Manages documentation discovery and prevents duplication
-8. **@agent-git-manager** - Handles version control operations and commits
-9. **@agent-cto** - Critical escalation for failed tasks (3 failures trigger escalation)
-
-### OpenCode Integration
-
-The agents have been ported to OpenCode format under `/opencode/agents/` with:
-
-- OpenCode YAML frontmatter configuration
-- Orchestration handled by `/orchestrate` mode instead of a specific agent
-- All inter-agent references updated to use "orchestrator mode" terminology
+## Architecture
 
 ### Directory Structure
 
-- `/claude/` - Core workflow system
+```
+claude-code/
+├── agents/           # Agent definition files (*.md)
+├── commands/         # Slash command implementations (*.md)
+├── modes/           # Mode configuration files (*.modes.md)
+├── rules/           # Framework-specific rules (*.rules.md)
+├── scripts/         # Python analysis scripts
+│   ├── analyze/     # Analysis tools by category
+│   ├── plan/        # Planning utilities
+│   └── setup/       # Setup and installation scripts
+├── docs/            # Technical documentation
+└── templates/       # Template files for generation
 
-  - `/agents/` - Agent definitions and state machines
-  - `/commands/` - Workflow command implementations
-  - `/modes/` - Special operational modes
-  - `/rules/` - Technology-specific rules and patterns
-  - `/scripts/` - Python analysis and automation scripts
-  - `/templates/` - Templates for various outputs
+test_codebase/       # Example test projects
+todos/               # Work-in-progress workflows
+```
 
-- `/opencode/` - OpenCode integration
+### Agent System
 
-  - `/agents/` - OpenCode-compatible agent definitions
-  - `/modes/` - OpenCode workflow modes (orchestrate)
+The repository implements an 8-agent orchestration system:
 
-- `/test_codebase/` - Example monorepo for testing workflows
-- `/wip-workflows/` - Experimental workflow agents
-- `/docs/` - Extended documentation
+1. **build-orchestrator**: Central workflow coordinator
+2. **plan-manager**: Task state and progress tracking
+3. **fullstack-developer**: Cross-platform implementation
+4. **solution-validator**: Pre-implementation validation
+5. **quality-monitor**: Dynamic quality gate detection
+6. **git-manager**: Version control operations
+7. **documenter**: Documentation discovery
+8. **log-monitor**: Runtime error detection
+9. **cto**: Critical escalation handler (3 failures → CTO → 2 attempts → human)
 
-### Quality Gate System
+### Python Scripts Architecture
 
-The quality monitor agent dynamically detects project technology and runs appropriate checks:
+The `scripts/` directory contains specialized Python analysis tools:
 
-1. **Tech Stack Detection** - Identifies Node.js, Python, Rust, Go projects
-2. **Command Discovery** - Finds available lint, typecheck, build, test commands
-3. **Mode-Aware Execution** - Respects `--prototype` flag to skip tests
-4. **Failure Escalation** - 3 failures → CTO agent → 2 attempts → human
+- **Security**: Uses bandit, safety, semgrep for vulnerability detection
+- **Performance**: Uses psutil, memory-profiler, py-spy for profiling
+- **Code Quality**: Uses flake8, pylint, radon, lizard for metrics
+- **Architecture**: Uses pydeps, networkx for dependency analysis
 
-### Development Monitoring
+### Command Implementation
 
-When `/setup-dev-monitoring` is run:
+Commands are Markdown files that can:
 
-- Creates unified `/dev.log` for all services
-- Provides real-time service status dashboard
-- Auto-detects tech stack for optimal monitoring
-- Enables commands: `make dev`, `make status`, `make logs`
+- Use `$ARGUMENTS` placeholder for dynamic values
+- Be namespaced using subdirectories (e.g., `frontend:component`)
+- Exist at project level (`.claude/commands/`) or user level (`~/.claude/commands/`)
 
-## Important Patterns
+### Mode System
 
-1. **Always run quality gates after implementation** - Use discovered commands, not hardcoded assumptions
-2. **Check for existing implementations** - Search before creating new utilities or components
-3. **Follow project conventions** - Maintain consistency with existing patterns
-4. **Use specialized agents proactively** - Let agents handle their domain expertise
-5. **Track tasks with TodoWrite** - Essential for complex multi-step implementations
-6. **Escalate after 3 failures** - CTO agent provides expert guidance
+Modes are activated by flags and modify Claude's behavior:
 
-## Notes for Working in This Repository
+- Each mode has a corresponding `.modes.md` file
+- Modes are resolved first from project `.claude/modes/`, then user `~/.claude/modes/`
+- Modes contain specific instructions that override default behavior
 
-- This is a tool repository, not a typical application codebase
-- Commands are markdown files that define workflows, not executable scripts
-- Python scripts under `/scripts/` provide programmatic analysis
-- The `/test_codebase/` is for testing workflows, not the main project
-- Agent coordination happens through the build orchestrator (conceptual role), not direct communication
-- Some configuration files (`message-formats.md`, `state-machine.md`, `workflow-config.md`) are documentation-only and not actively used by the agent system
+## Quality Gates and Testing
+
+The system implements dynamic quality gate detection that adapts to the project's technology stack. When working on changes:
+
+1. Quality gates are automatically enforced unless `--prototype` flag is used
+2. The quality-monitor agent detects available test/lint commands
+3. Pre-commit checks can be added via `/add-code-precommit-checks`
+4. Post-tool-use quality gates via `/add-code-posttooluse-quality-gates`
+
+## Working with the Codebase
+
+When making changes to this repository:
+
+1. **Adding new commands**: Create `.md` files in `claude-code/commands/`
+2. **Adding new agents**: Create `.md` files in `claude-code/agents/`
+3. **Adding new modes**: Create `.modes.md` files in `claude-code/modes/`
+4. **Adding analysis scripts**: Place Python scripts in appropriate `claude-code/scripts/analyze/` subdirectory
+
+### Installation Script
+
+The main installation script (`claude-code/install.sh`) handles:
+
+- Creating `.claude/` directory structure
+- Installing Python dependencies via pip
+- Setting up MCP tools (optional)
+- Creating backups of existing installations
+- Cross-platform compatibility (macOS, Linux, Windows via WSL)
+
+## Important Notes
+
+1. This repository itself doesn't have traditional build/test commands - it's a collection of tools installed into other projects
+2. The `test_codebase/` directory contains example projects for testing workflows
+3. The `todos/wip-workflows/` directory contains experimental workflows under development
+4. All agent communication flows through the build orchestrator except for specific exceptions documented in `workflow-config.md`

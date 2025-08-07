@@ -130,7 +130,7 @@ stateDiagram-v2
 
 | From State     | To State       | Condition             | Actor                      |
 | -------------- | -------------- | --------------------- | -------------------------- |
-| pending        | assigned       | Task picked up        | build orchestrator  |
+| pending        | assigned       | Task picked up        | build orchestrator         |
 | assigned       | planning       | Validation starts     | @agent-solution-validator  |
 | planning       | validated      | Approach approved     | @agent-solution-validator  |
 | validated      | in_progress    | Implementation starts | @agent-fullstack-developer |
@@ -147,7 +147,7 @@ stateDiagram-v2
 | planning         | planning         | Approach rejected (<3) | @agent-solution-validator |
 | quality_review   | in_progress      | Quality failed (<3)    | @agent-quality-monitor    |
 | committing       | in_progress      | Pre-commit failed (<3) | @agent-git-manager        |
-| any_state        | cto_intervention | 3 failures             | build orchestrator |
+| any_state        | cto_intervention | 3 failures             | build orchestrator        |
 | cto_intervention | previous_state   | CTO guidance           | @agent-cto                |
 | cto_intervention | human_escalation | 2 CTO attempts         | @agent-cto                |
 

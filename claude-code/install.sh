@@ -314,7 +314,7 @@ setup_install_dir() {
 # Handle claude.md merging or copying
 handle_claude_md() {
     local source_dir="$1"
-    local source_claude_md="$source_dir/claude/claude.md"
+    local source_claude_md="$source_dir/claude-code/claude.md"
     local target_claude_md="$INSTALL_DIR/claude.md"
 
     # Check if our source claude.md exists
@@ -357,8 +357,8 @@ copy_files() {
     local source_dir="$SCRIPT_DIR"
 
     # Verify source files exist
-    if [[ ! -d "$source_dir/claude" ]]; then
-        log_error "Source directory not found: $source_dir/claude"
+    if [[ ! -d "$source_dir/claude-code" ]]; then
+        log_error "Source directory not found: $source_dir/claude-code"
         exit 1
     fi
 
@@ -367,8 +367,8 @@ copy_files() {
         return 0
     fi
 
-    # Copy claude directory
-    log_verbose "Copying claude/ directory..."
+    # Copy claude-code directory
+    log_verbose "Copying claude-code/ directory..."
     if [[ "${MERGE_MODE:-false}" == "true" ]]; then
         # Merge mode: preserve existing files, copy new ones
         log "Merge mode: preserving existing files while adding new ones..."
@@ -383,15 +383,15 @@ copy_files() {
             for cmd in "$INSTALL_DIR/commands"/*; do
                 if [[ -f "$cmd" ]]; then
                     local cmd_name=$(basename "$cmd")
-                    if ! [[ -f "$source_dir/claude/commands/$cmd_name" ]]; then
+                    if ! [[ -f "$source_dir/claude-code/commands/$cmd_name" ]]; then
                         custom_commands+=("$cmd_name")
                     fi
                 fi
             done
         fi
 
-        # Copy with no-clobber
-        cp -rn "$source_dir/claude"/* "$INSTALL_DIR/" 2>/dev/null || true
+        # Copy with no-clobber, excluding docs directory
+        find "$source_dir/claude-code" -mindepth 1 -maxdepth 1 -not -name "docs" -exec cp -rn {} "$INSTALL_DIR/" \; 2>/dev/null || true
 
         # Report custom commands preserved
         if [[ ${#custom_commands[@]} -gt 0 ]]; then
@@ -407,7 +407,7 @@ copy_files() {
         log "Updating workflows only: built-in commands, scripts, agents, templates, and rules directories..."
 
         # Update built-in commands while preserving custom commands
-        if [[ -d "$source_dir/claude/commands" ]]; then
+        if [[ -d "$source_dir/claude-code/commands" ]]; then
             log "  Updating commands directory (preserving custom commands)..."
             local custom_commands=()
 
@@ -416,7 +416,7 @@ copy_files() {
                 for cmd in "$INSTALL_DIR/commands"/*; do
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
-                        if ! [[ -f "$source_dir/claude/commands/$cmd_name" ]]; then
+                        if ! [[ -f "$source_dir/claude-code/commands/$cmd_name" ]]; then
                             custom_commands+=("$cmd_name")
                         fi
                     fi
@@ -427,7 +427,7 @@ copy_files() {
             mkdir -p "$INSTALL_DIR/commands"
 
             # Copy/overwrite built-in commands (this preserves any custom commands not in source)
-            cp "$source_dir/claude/commands"/* "$INSTALL_DIR/commands/"
+            cp "$source_dir/claude-code/commands"/* "$INSTALL_DIR/commands/"
 
             # Report preserved custom commands
             if [[ ${#custom_commands[@]} -gt 0 ]]; then
@@ -439,7 +439,7 @@ copy_files() {
         fi
 
         # Update scripts directory (preserve custom scripts)
-        if [[ -d "$source_dir/claude/scripts" ]]; then
+        if [[ -d "$source_dir/claude-code/scripts" ]]; then
             log "  Updating scripts directory (preserving custom scripts)..."
 
             # Backup custom scripts if they exist
@@ -448,7 +448,7 @@ copy_files() {
                 # Find custom scripts that aren't in our source
                 while IFS= read -r -d '' script_file; do
                     local rel_path="${script_file#$INSTALL_DIR/scripts/}"
-                    if [[ ! -f "$source_dir/claude/scripts/$rel_path" ]]; then
+                    if [[ ! -f "$source_dir/claude-code/scripts/$rel_path" ]]; then
                         custom_scripts+=("$rel_path")
                     fi
                 done < <(find "$INSTALL_DIR/scripts" -type f -print0 2>/dev/null)
@@ -466,7 +466,7 @@ copy_files() {
 
             # Remove and recreate scripts directory
             rm -rf "$INSTALL_DIR/scripts"
-            cp -r "$source_dir/claude/scripts" "$INSTALL_DIR/"
+            cp -r "$source_dir/claude-code/scripts" "$INSTALL_DIR/"
 
             # Restore custom scripts
             if [[ ${#custom_scripts[@]} -gt 0 ]]; then
@@ -482,39 +482,39 @@ copy_files() {
         fi
 
         # Update agents directory
-        if [[ -d "$source_dir/claude/agents" ]]; then
+        if [[ -d "$source_dir/claude-code/agents" ]]; then
             log "  Updating agents directory..."
             rm -rf "$INSTALL_DIR/agents"
-            cp -r "$source_dir/claude/agents" "$INSTALL_DIR/"
+            cp -r "$source_dir/claude-code/agents" "$INSTALL_DIR/"
         fi
 
         # Update templates directory
-        if [[ -d "$source_dir/claude/templates" ]]; then
+        if [[ -d "$source_dir/claude-code/templates" ]]; then
             log "  Updating templates directory..."
             rm -rf "$INSTALL_DIR/templates"
-            cp -r "$source_dir/claude/templates" "$INSTALL_DIR/"
+            cp -r "$source_dir/claude-code/templates" "$INSTALL_DIR/"
         fi
 
         # Update rules directory
-        if [[ -d "$source_dir/claude/rules" ]]; then
+        if [[ -d "$source_dir/claude-code/rules" ]]; then
             log "  Updating rules directory..."
             rm -rf "$INSTALL_DIR/rules"
-            cp -r "$source_dir/claude/rules" "$INSTALL_DIR/"
+            cp -r "$source_dir/claude-code/rules" "$INSTALL_DIR/"
         fi
 
         echo "  Workflow update complete. Built-in commands, scripts, agents, templates, and rules updated, custom commands and other files preserved."
     else
-        # Fresh install: copy everything
-        cp -r "$source_dir/claude"/* "$INSTALL_DIR/"
+        # Fresh install: copy everything except docs
+        find "$source_dir/claude-code" -mindepth 1 -maxdepth 1 -not -name "docs" -exec cp -r {} "$INSTALL_DIR/" \;
     fi
 
     # Copy CLAUDE.md if it exists in root, otherwise copy claude.md as CLAUDE.md
     if [[ -f "$source_dir/CLAUDE.md" ]]; then
         log_verbose "Copying CLAUDE.md..."
         cp "$source_dir/CLAUDE.md" "$INSTALL_DIR/"
-    elif [[ -f "$source_dir/claude/claude.md" ]]; then
+    elif [[ -f "$source_dir/claude-code/claude.md" ]]; then
         log_verbose "Copying claude.md as CLAUDE.md..."
-        cp "$source_dir/claude/claude.md" "$INSTALL_DIR/CLAUDE.md"
+        cp "$source_dir/claude-code/claude.md" "$INSTALL_DIR/CLAUDE.md"
     fi
 
     # Handle claude.md merging or copying
@@ -792,7 +792,7 @@ verify_installation() {
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
                         # Check if this is a custom command (not in source)
-                        if ! [[ -f "$SCRIPT_DIR/claude/commands/$cmd_name" ]]; then
+                        if ! [[ -f "$SCRIPT_DIR/claude-code/commands/$cmd_name" ]]; then
                             log_verbose "  Custom command preserved: $cmd_name"
                             ((custom_commands_found++))
                         fi

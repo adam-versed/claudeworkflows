@@ -4,11 +4,15 @@ Create a new Claude Code slash command based on the task description provided in
 
 ## Behavior
 
+**IMPORTANT**: Focus on clarity and specific requirements rather than vague quality descriptors. Avoid prompting for "production-ready" code - this often leads to over-engineering.
+
 Parse the arguments to extract:
 
 1. **Scope**: "project" or "user" (default to project if not specified)
 2. **Command name**: The name for the new command
 3. **Task description**: What the command should do
+
+**Proactively**: Suggest improvements and take initiative in command design when beneficial.
 
 Based on the scope:
 
@@ -20,16 +24,17 @@ Based on the scope:
 The generated command file should:
 
 1. Have a clear title matching the command name
-2. Include instructions that direct Claude to perform the specified task
+2. Include specific, actionable instructions that direct Claude to perform the task
 3. Reference $ARGUMENTS where user input will be provided
-4. Include an example usage showing how to invoke the command
+4. Use "think" for complex analysis needs (avoid over-analysis)
+5. **IMPORTANT**: Avoid backward compatibility unless specifically needed - Claude tends to preserve old code unnecessarily
 
 ## Process
 
 1. **Parse Arguments**: Extract scope, command name, and task description from $ARGUMENTS
 2. **Determine File Path**: Choose appropriate directory based on scope
 3. **Create Directory**: Ensure the target directory exists (create ./claude_commands/ if needed for project scope)
-4. **Generate Command File**: Create the command file with proper structure and content
+4. **Generate Command File**: think harder and create the command file with proper structure and content
 5. **Confirm Creation**: Report the file location and provide usage instructions
 
 ## Template Structure
@@ -37,15 +42,19 @@ The generated command file should:
 ```markdown
 # [Command Name Title]
 
-[Task description and instructions for Claude]
+[Clear, specific task description and instructions for Claude]
 
 ## Behavior
 
-[Detailed instructions on what Claude should do when this command is invoked]
+**IMPORTANT**: [Single critical instruction using IMPORTANT keyword instead of repetition]
+
+[Specific instructions on what Claude should do when this command is invoked]
 
 ## Process
 
 [Step-by-step process if applicable]
+
+If complex analysis is needed, use "think" to trigger more thorough analysis (use sparingly).
 
 $ARGUMENTS
 ```
