@@ -284,7 +284,9 @@ function Install-PythonDependencies {
     Write-ColorOutput "Installing Python dependencies..." -Color $Colors.Yellow
     Write-Log "Starting Python dependencies installation"
 
-    $setupDir = Join-Path $SCRIPT_DIR "scripts\setup"
+    # Scripts are now in shared/lib/scripts
+    $sharedScriptsDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared\lib\scripts"
+    $setupDir = Join-Path $sharedScriptsDir "setup"
     $requirementsPath = Join-Path $setupDir "requirements.txt"
 
     if (-not (Test-Path $requirementsPath)) {
