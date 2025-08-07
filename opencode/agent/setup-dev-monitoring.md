@@ -1,6 +1,8 @@
 ---
 description: Establishes comprehensive development monitoring infrastructure through automated analysis and cross-platform setup
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.1
+mode: subagent
 tools:
   bash: true
   read: true

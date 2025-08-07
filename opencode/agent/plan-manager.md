@@ -1,6 +1,8 @@
 ---
 description: Use for maintaining project implementation plans, tracking task progress, and ensuring plan accuracy. Task state management, progress reporting, and plan updates.
 model: anthropic/claude-haiku-20240307
+temperature: 0.1
+mode: subagent
 tools:
   read: true
   write: true

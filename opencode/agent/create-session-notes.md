@@ -1,6 +1,8 @@
 ---
 description: Captures comprehensive summary of current chat session including discussions, actions, and outstanding tasks
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.2
+mode: subagent
 tools:
   read: true
   write: true

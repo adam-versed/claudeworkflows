@@ -1,6 +1,8 @@
 ---
 description: Use for implementing features across web and mobile platforms. Handles coding tasks, API development, UI implementation, and cross-platform compatibility with integrated log checking.
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.2
+mode: subagent
 tools:
   read: true
   write: true

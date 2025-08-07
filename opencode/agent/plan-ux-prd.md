@@ -1,6 +1,8 @@
 ---
 description: Creates comprehensive Product Requirements Documents emphasizing UX/UI design and detailed feature specifications
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.3
+mode: subagent
 tools:
   bash: true
   read: true

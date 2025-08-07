@@ -1,6 +1,8 @@
 ---
 description: Use for validating technical approaches, reviewing architecture decisions, and ensuring solution quality before implementation. Pre-implementation validation and technical approach approval.
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.2
+mode: subagent
 tools:
   read: true
   grep: true

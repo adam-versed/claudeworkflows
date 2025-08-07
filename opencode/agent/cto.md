@@ -1,6 +1,8 @@
 ---
 description: Use for critical escalation when tasks fail 3 times, and for comprehensive codebase reviews when starting implementation plans. Resolves complex technical blocks and architectural conflicts.
 model: anthropic/claude-4-opus-20250514
+temperature: 0.2
+mode: subagent
 tools:
   read: true
   write: true

@@ -1,6 +1,8 @@
 ---
 description: Use for independent quality verification after implementation. Validates quality gates, verifies test results, and ensures code meets all standards before approval.
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.1
+mode: subagent
 tools:
   read: true
   bash: true

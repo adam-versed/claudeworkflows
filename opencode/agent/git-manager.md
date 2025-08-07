@@ -1,6 +1,8 @@
 ---
 description: Use for managing version control operations, commits, and rollbacks. Committing approved changes, handling pre-commit hooks, and managing git operations.
 model: anthropic/claude-haiku-20240307
+temperature: 0.1
+mode: subagent
 tools:
   bash: true
   read: true

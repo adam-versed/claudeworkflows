@@ -1,6 +1,8 @@
 ---
 description: Use for finding existing documentation and preventing duplication. Check documentation availability before creating new docs and maintain documentation registry.
 model: anthropic/claude-haiku-20240307
+temperature: 0.2
+mode: subagent
 tools:
   read: true
   grep: true

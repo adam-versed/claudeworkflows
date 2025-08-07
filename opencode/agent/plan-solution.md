@@ -1,6 +1,8 @@
 ---
 description: Research-driven technical challenge solving with systematic analysis and implementation planning
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.3
+mode: subagent
 tools:
   bash: true
   read: true

@@ -1,6 +1,8 @@
 ---
 description: Sets up new project using better-t-stack CLI with specified technologies or todos.md analysis
 model: anthropic/claude-sonnet-4-20250514
+temperature: 0.1
+mode: subagent
 tools:
   bash: true
   read: true
