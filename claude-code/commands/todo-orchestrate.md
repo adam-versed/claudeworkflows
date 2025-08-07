@@ -70,15 +70,14 @@ while (phases remain with incomplete tasks):
 
     ## 3. Phase 2 - Implementation
     Use the @agent-fullstack-developer sub agent with validated approach.
-    Developer implements feature (no self-validation required).
-    Monitor with @agent-log-monitor sub agent for runtime errors.
+    Developer implements feature and checks dev.log for runtime errors before completion.
     Update task state: in_progress → testing.
     If implementation fails: retry up to 3 times, escalate to @agent-cto sub agent.
 
     ## 4. Phase 3 - Quality Verification
     Use the @agent-quality-monitor sub agent for verification.
     Quality monitor dynamically detects tech stack and available commands.
-    Quality monitor executes appropriate gates based on project state.
+    Quality monitor executes appropriate gates and verifies clean dev.log.
     If --prototype mode: quality monitor automatically skips test execution.
     If production mode: quality monitor includes all available tests.
 
