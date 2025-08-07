@@ -16,7 +16,7 @@ This command performs a deep analysis of the current project to create a standar
 
 2. **Parallel Codebase Analysis**
 
-   - Use mcp\_\_serena if available, otherwise fall back to Grep/Glob tools
+   - Use `mcp__serena` tool if available, otherwise fall back to Grep/Glob tools
    - Launch parallel Task agents to analyze:
      - **Purpose & Features**: Identify what the project does and its key features
      - **Tech Stack**: Detect languages, frameworks, build tools, dependency managers
