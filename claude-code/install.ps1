@@ -338,35 +338,48 @@ function Install-McpTools {
     try {
         # Install sequential-thinking MCP server
         Write-Output "Installing sequential-thinking MCP server..."
-        $mcpListOutput = & claude mcp list 2>$null
-        if ($mcpListOutput -match "sequential-thinking") {
+        Start-Sleep -Seconds 1  # Small delay to ensure claude mcp list is ready
+        $mcpListOutput = & claude mcp list 2>&1
+        if ($mcpListOutput -match "^sequential-thinking:") {
             Write-ColorOutput "[INFO] sequential-thinking already installed, skipping" -Color $Colors.Yellow
             Write-Log "sequential-thinking already installed, skipping"
         } else {
-            & claude mcp add sequential-thinking -s user -- npx -y "@modelcontextprotocol/server-sequential-thinking" 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            # Try to install, capturing the actual output
+            $installOutput = & claude mcp add sequential-thinking -s user -- npx -y "@modelcontextprotocol/server-sequential-thinking" 2>&1
+            $installExitCode = $LASTEXITCODE
+
+            if ($installExitCode -eq 0) {
                 Write-ColorOutput "[OK] sequential-thinking MCP server installed" -Color $Colors.Green
                 Write-Log "sequential-thinking MCP server installed successfully"
+            } elseif ($installOutput -match "already exists") {
+                Write-ColorOutput "[INFO] sequential-thinking already exists, marking as successful" -Color $Colors.Yellow
+                Write-Log "sequential-thinking already exists (detected during install)"
             } else {
-                Write-ColorOutput "[WARNING] Failed to install sequential-thinking MCP server" -Color $Colors.Yellow
-                Write-Log "Failed to install sequential-thinking MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+                Write-ColorOutput "[WARNING] Failed to install sequential-thinking MCP server: $installOutput" -Color $Colors.Yellow
+                Write-Log "Failed to install sequential-thinking MCP server: $installOutput" -Level "WARNING"
             }
         }
 
         # Install grep MCP server
         Write-Output "Installing grep MCP server..."
-        $mcpListOutput = & claude mcp list 2>$null
-        if ($mcpListOutput -match "grep") {
+        $mcpListOutput = & claude mcp list 2>&1
+        if ($mcpListOutput -match "^grep:") {
             Write-ColorOutput "[INFO] grep already installed, skipping" -Color $Colors.Yellow
             Write-Log "grep already installed, skipping"
         } else {
-            & claude mcp add --transport http grep https://mcp.grep.app 2>$null
-            if ($LASTEXITCODE -eq 0) {
+            # Try to install, capturing the actual output
+            $installOutput = & claude mcp add --transport http grep https://mcp.grep.app 2>&1
+            $installExitCode = $LASTEXITCODE
+
+            if ($installExitCode -eq 0) {
                 Write-ColorOutput "[OK] grep MCP server installed" -Color $Colors.Green
                 Write-Log "grep MCP server installed successfully"
+            } elseif ($installOutput -match "already exists") {
+                Write-ColorOutput "[INFO] grep already exists, marking as successful" -Color $Colors.Yellow
+                Write-Log "grep already exists (detected during install)"
             } else {
-                Write-ColorOutput "[WARNING] Failed to install grep MCP server" -Color $Colors.Yellow
-                Write-Log "Failed to install grep MCP server, exit code: $LASTEXITCODE" -Level "WARNING"
+                Write-ColorOutput "[WARNING] Failed to install grep MCP server: $installOutput" -Color $Colors.Yellow
+                Write-Log "Failed to install grep MCP server: $installOutput" -Level "WARNING"
             }
         }
 

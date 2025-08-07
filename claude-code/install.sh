@@ -705,28 +705,51 @@ install_mcp_tools() {
 
     # Install sequential-thinking
     log_verbose "Installing sequential-thinking MCP tool..."
-    if claude mcp list 2>/dev/null | grep -q "sequential-thinking"; then
+    # First check if already installed (with a small delay to ensure claude mcp list is ready)
+    sleep 1
+    if claude mcp list 2>&1 | grep -q "^sequential-thinking:"; then
         log_verbose "sequential-thinking already installed, skipping"
         update_installation_log "mcp" "sequential-thinking"
-    elif claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking 2>/dev/null; then
-        log_verbose "sequential-thinking installed successfully"
-        update_installation_log "mcp" "sequential-thinking"
     else
-        log_error "Failed to install sequential-thinking MCP tool"
-        mcp_failed=true
+        # Try to install, capturing the actual error
+        local install_output
+        install_output=$(claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking 2>&1)
+        local install_status=$?
+
+        if [[ $install_status -eq 0 ]]; then
+            log_verbose "sequential-thinking installed successfully"
+            update_installation_log "mcp" "sequential-thinking"
+        elif echo "$install_output" | grep -q "already exists"; then
+            log_verbose "sequential-thinking already exists (detected during install), marking as successful"
+            update_installation_log "mcp" "sequential-thinking"
+        else
+            log_error "Failed to install sequential-thinking MCP tool: $install_output"
+            mcp_failed=true
+        fi
     fi
 
     # Install grep
     log_verbose "Installing grep MCP tool..."
-    if claude mcp list 2>/dev/null | grep -q "grep"; then
+    # Check if already installed
+    if claude mcp list 2>&1 | grep -q "^grep:"; then
         log_verbose "grep already installed, skipping"
         update_installation_log "mcp" "grep"
-    elif claude mcp add --transport http grep https://mcp.grep.app 2>/dev/null; then
-        log_verbose "grep installed successfully"
-        update_installation_log "mcp" "grep"
     else
-        log_error "Failed to install grep MCP tool"
-        mcp_failed=true
+        # Try to install, capturing the actual error
+        local install_output
+        install_output=$(claude mcp add --transport http grep https://mcp.grep.app 2>&1)
+        local install_status=$?
+
+        if [[ $install_status -eq 0 ]]; then
+            log_verbose "grep installed successfully"
+            update_installation_log "mcp" "grep"
+        elif echo "$install_output" | grep -q "already exists"; then
+            log_verbose "grep already exists (detected during install), marking as successful"
+            update_installation_log "mcp" "grep"
+        else
+            log_error "Failed to install grep MCP tool: $install_output"
+            mcp_failed=true
+        fi
     fi
 
     if [[ "$mcp_failed" == "true" ]]; then
