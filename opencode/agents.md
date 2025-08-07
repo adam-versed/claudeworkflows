@@ -1,164 +1,29 @@
-Agents are specialized AI assistants that can be configured for specific tasks and workflows. They allow you to create focused tools with custom prompts, models, and tool access.
+## Monitor User Request For Flags Enabled Modes
 
-## [Creating Agents](#creating-agents)
+**When a `--[FLAG]` flag is present in the user request, resolve and read the corresponding mode file**:
 
-You can create new agents using the `opencode agent create` command. This interactive command will:
+### Flag Conditions and Path Resolution:
 
-1. Ask where to save the agent (global or project-specific)
-2. Prompt for a description of what the agent should do
-3. Generate an appropriate system prompt and identifier
-4. Let you select which tools the agent can access
-5. Create a markdown file with the agent configuration
+**ONLY when a flag is detected, resolve the mode file path:**
 
-The command will guide you through the process and automatically generate a well-structured agent based on your requirements.
+1. **First try project-level .claude folder**:
 
-## [Built-in Agents](#built-in-agents)
+   - Check if `~/.config/opencode/instructions/*.instructions.md` exists using Glob tool
 
-opencode comes with a built-in `general` agent:
+2. **Then try user-level .claude folder**:
 
-- **general** - General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use this when searching for keywords or files and you’re not confident you’ll find the right match in the first few tries.
+   - Check if `$HOME/.config/opencode/instructions/*.instructions.md` exists using Bash tool
 
-## [Configuration](#configuration)
+3. **Use the first path that exists**
 
-Agents can be configured in your `opencode.json` config file or as markdown files.
+### Flag to Mode Mapping:
 
-### [JSON Configuration](#json-configuration)
+- If user request contains flag `--prototype` → Resolve, read and enforce `rapid-prototype.instructions.md`
+- If user request contains flag `--tdd` → Resolve, read and enforce `tdd.instructions.md`
+- If user request contains flag `--seq` → Resolve, read and enforce `sequential-thinking.instructions.md`
+- If user request contains flag `--gitgrep` → Resolve, read and enforce `grep-search.instructions.md`
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "agent": {
-    "code-reviewer": {
-      "description": "Reviews code for best practices and potential issues",
-      "model": "anthropic/claude-sonnet-4-20250514",
-      "prompt": "You are a code reviewer. Focus on security, performance, and maintainability.",
-      "tools": {
-        "write": false,
-        "edit": false
-      }
-    },
-    "test-writer": {
-      "description": "Specialized agent for writing comprehensive tests",
-      "prompt": "You are a test writing specialist. Write thorough, maintainable tests.",
-      "tools": {
-        "bash": true,
-        "read": true,
-        "write": true
-      }
-    }
-  }
-}
-```
+## Behaviour Rules
 
-### [Markdown Configuration](#markdown-configuration)
-
-You can also define agents using markdown files. Place them in:
-
-- Global: `~/.config/opencode/agent/`
-- Project: `.opencode/agent/`
-
-```yaml
----
-description: Reviews code for best practices and potential issues
-model: anthropic/claude-sonnet-4-20250514
-tools:
-  write: false
-  edit: false
----
-You are a code reviewer with expertise in security, performance, and maintainability.
-
-Focus on:
-- Security vulnerabilities
-- Performance bottlenecks
-- Code maintainability
-- Best practices adherence
-```
-
-## [Agent Properties](#agent-properties)
-
-### [Required](#required)
-
-- **description** - Brief description of what the agent does and when to use it
-
-### [Optional](#optional)
-
-- **model** - Specific model to use (defaults to your configured model)
-- **prompt** - Custom system prompt for the agent
-- **tools** - Object specifying which tools the agent can access (true/false for each tool)
-- **disable** - Set to true to disable the agent
-
-By default, agents inherit the same tool access as the main assistant. You can restrict or enable specific tools:
-
-```json
-{
-  "agent": {
-    "readonly-agent": {
-      "description": "Read-only agent for analysis",
-      "tools": {
-        "write": false,
-        "edit": false,
-        "bash": false
-      }
-    }
-  }
-}
-```
-
-Common tools you might want to control:
-
-- `write` - Create new files
-- `edit` - Modify existing files
-- `bash` - Execute shell commands
-- `read` - Read files
-- `glob` - Search for files
-- `grep` - Search file contents
-
-## [Using Agents](#using-agents)
-
-Agents are automatically available through the Task tool when configured. The main assistant will use them for specialized tasks based on their descriptions.
-
-## [Best Practices](#best-practices)
-
-1. **Clear descriptions** - Write specific descriptions that help the main assistant know when to use each agent
-2. **Focused prompts** - Keep agent prompts focused on their specific role
-3. **Appropriate tool access** - Only give agents the tools they need for their tasks
-4. **Consistent naming** - Use descriptive, consistent names for your agents
-5. **Project-specific agents** - Use `.opencode/agent/` for project-specific workflows
-
-## [Examples](#examples)
-
-### [Documentation Agent](#documentation-agent)
-
-```yaml
----
-description: Writes and maintains project documentation
-tools:
-  bash: false
----
-You are a technical writer. Create clear, comprehensive documentation.
-
-Focus on:
-- Clear explanations
-- Proper structure
-- Code examples
-- User-friendly language
-```
-
-### [Security Auditor](#security-auditor)
-
-```yaml
----
-description: Performs security audits and identifies vulnerabilities
-tools:
-  write: false
-  edit: false
----
-You are a security expert. Focus on identifying potential security issues.
-
-Look for:
-- Input validation vulnerabilities
-- Authentication and authorization flaws
-- Data exposure risks
-- Dependency vulnerabilities
-- Configuration security issues
-```
+1. Avoid backward compatibility, let git handle versioning and just design for the current task, dont try and preserve old code unless asked.
+2. KISS - keep it simple, stupid is your mantra - we should always favour established libraries over bespoke code and we should always take the least intrusive and least effor approach to complete a task, without sacrifcing accuracy or the user objective.

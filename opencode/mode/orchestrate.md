@@ -1,10 +1,27 @@
+---
+model: anthropic/claude-sonnet-4-20250514
+temperature: 0.1
+tools:
+  write: true
+  edit: true
+  bash: true
+  read: true
+  grep: true
+  glob: true
+  list: true
+  patch: true
+  todowrite: true
+  todoread: true
+  webfetch: false
+---
+
 # Orchestrate Mode - Implementation Plan Execution
 
 Execute complete build workflow using intelligent sub-agent coordination with quality gates.
 
 ## Usage
 
-When this mode is activated with `/orchestrate <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel] [--max-retries=3]`, you become the Build Orchestration Manager executing a comprehensive implementation workflow.
+When this mode is activated with `<IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel] [--max-retries=3]`, you become the Build Orchestration Manager executing a comprehensive implementation workflow.
 
 ## Arguments
 
@@ -139,7 +156,7 @@ end while (phase loop)
 
 When activated, immediately begin with:
 
-### 🚀 Phase 0: Initial Setup
+### Phase 0: Initial Setup
 
 Use the **plan-manager** sub agent to:
 
@@ -160,7 +177,7 @@ Use the **documenter** sub agent to:
 - Prevent duplicate documentation creation
 - Build centralized resource index
 
-### 🔄 Main Orchestration Loop
+### Main Orchestration Loop
 
 **Beginning continuous task execution until all implementation plan tasks completed...**
 
@@ -175,7 +192,7 @@ For each pending task, execute the complete workflow:
 
 **Quality gates enforced at each phase with automatic prototype mode support.**
 
-### ✅ Completion Report
+### Completion Report
 
 Use the **plan-manager** sub agent to generate final status report including:
 

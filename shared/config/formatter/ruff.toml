@@ -1,0 +1,82 @@
+# Ruff configuration - Best practices from popular repositories
+# Based on configurations from: HuggingFace Transformers, CPython, Wagtail, Manim, Poetry
+
+# Basic configuration
+line-length = 88
+target-version = "py39"
+fix = true
+output-format = "full"
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".tox",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.egg-info",
+    "build",
+    "dist",
+    "migrations",
+    "node_modules",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
+
+[lint]
+# Enable recommended rules plus additional quality checks
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "PT",  # flake8-pytest-style
+    "PGH", # pygrep-hooks
+    "A",   # flake8-builtins
+    "D",   # pydocstyle
+]
+
+# Ignore specific rules that are commonly problematic
+ignore = [
+    "E501",  # line-too-long (handled by formatter)
+    "D100",  # Missing docstring in public module
+    "D101",  # Missing docstring in public class
+    "D102",  # Missing docstring in public method
+    "D103",  # Missing docstring in public function
+    "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in __init__
+    "B006",  # Do not use mutable data structures for argument defaults
+    "B008",  # Do not perform function calls in argument defaults
+    "A005",  # Module is shadowing a Python builtin module
+]
+
+# Per-file ignores
+[lint.per-file-ignores]
+"__init__.py" = ["F401", "F403", "D104"]  # Allow unused imports and missing docstrings
+"test_*.py" = ["D", "S101", "PLR2004"]    # Ignore docstring and assert rules in tests
+"**/tests/**" = ["D", "S101", "PLR2004"]  # Ignore docstring and assert rules in test dirs
+"conftest.py" = ["D"]                     # Allow missing docstrings in conftest
+"setup.py" = ["D"]                        # Allow missing docstrings in setup
+
+[lint.isort]
+known-first-party = []
+force-single-line = false
+combine-as-imports = true
+split-on-trailing-comma = true
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[format]
+# Format configuration
+quote-style = "double"
+indent-style = "space"
+skip-string-normalization = false
+line-ending = "auto"
+docstring-code-format = true

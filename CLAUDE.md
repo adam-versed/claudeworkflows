@@ -51,12 +51,29 @@ claude-code/
 ├── commands/         # Slash command implementations (*.md)
 ├── modes/           # Mode configuration files (*.modes.md)
 ├── rules/           # Framework-specific rules (*.rules.md)
-├── scripts/         # Python analysis scripts
-│   ├── analyze/     # Analysis tools by category
-│   ├── plan/        # Planning utilities
-│   └── setup/       # Setup and installation scripts
 ├── docs/            # Technical documentation
 └── templates/       # Template files for generation
+
+opencode/            # Open-source components for community contribution
+├── agents/          # Public agent definitions
+├── docs/            # Public documentation for extensibility
+├── modes/           # Public mode configurations
+└── plugins/         # Plugin architecture components
+
+shared/              # Shared libraries and configurations
+├── config/          # Shared configuration files
+│   └── formatter/   # Code formatting configurations (biome.json, ruff.toml)
+└── lib/             # Shared Python libraries and scripts
+    └── scripts/     # Python analysis and utility scripts
+        ├── analyze/ # Analysis tools by category
+        │   ├── architecture/    # Coupling, patterns, scalability
+        │   ├── code_quality/    # Complexity, coverage metrics
+        │   ├── performance/     # Performance profiling tools
+        │   ├── root_cause/      # Error tracing and analysis
+        │   └── security/        # Security scanning tools
+        ├── plan/    # Planning utilities
+        ├── setup/   # Installation and monitoring setup
+        └── utils/   # Cross-platform utilities and detectors
 
 test_codebase/       # Example test projects
 todos/               # Work-in-progress workflows
@@ -78,12 +95,31 @@ The repository implements an 8-agent orchestration system:
 
 ### Python Scripts Architecture
 
-The `scripts/` directory contains specialized Python analysis tools:
+The `shared/lib/scripts/` directory contains specialized Python analysis tools:
 
 - **Security**: Uses bandit, safety, semgrep for vulnerability detection
 - **Performance**: Uses psutil, memory-profiler, py-spy for profiling
 - **Code Quality**: Uses flake8, pylint, radon, lizard for metrics
 - **Architecture**: Uses pydeps, networkx for dependency analysis
+- **Root Cause Analysis**: Error pattern detection and execution tracing
+- **Utilities**: Cross-platform support, tech stack detection, and output formatting
+
+### Shared Libraries and Configuration
+
+The `shared/` directory provides:
+
+- **Config**: Centralized configuration files for code formatters (Biome, Ruff)
+- **Scripts**: Reusable Python analysis and utility scripts organized by function
+- **Cross-platform Support**: Platform-agnostic utilities for Windows, macOS, and Linux
+
+### Open Source Components
+
+The `opencode/` directory contains:
+
+- **Public Agents**: Community-extensible agent definitions
+- **Documentation**: Public APIs for plugin and extension development
+- **Mode Templates**: Reusable behavior modification patterns
+- **Plugin Architecture**: Framework for third-party integrations
 
 ### Command Implementation
 
@@ -115,16 +151,19 @@ The system implements dynamic quality gate detection that adapts to the project'
 When making changes to this repository:
 
 1. **Adding new commands**: Create `.md` files in `claude-code/commands/`
-2. **Adding new agents**: Create `.md` files in `claude-code/agents/`
-3. **Adding new modes**: Create `.modes.md` files in `claude-code/modes/`
-4. **Adding analysis scripts**: Place Python scripts in appropriate `claude-code/scripts/analyze/` subdirectory
+2. **Adding new agents**: Create `.md` files in `claude-code/agents/` or `opencode/agents/` for public agents
+3. **Adding new modes**: Create `.modes.md` files in `claude-code/modes/` or `opencode/modes/` for public modes
+4. **Adding analysis scripts**: Place Python scripts in appropriate `shared/lib/scripts/analyze/` subdirectory
+5. **Adding shared utilities**: Place reusable Python utilities in `shared/lib/scripts/utils/`
+6. **Adding configurations**: Place shared config files in `shared/config/` organized by tool type
 
 ### Installation Script
 
 The main installation script (`claude-code/install.sh`) handles:
 
 - Creating `.claude/` directory structure
-- Installing Python dependencies via pip
+- Installing Python dependencies from `shared/lib/scripts/setup/requirements.txt`
+- Copying shared libraries and configurations to the target installation
 - Setting up MCP tools (optional)
 - Creating backups of existing installations
 - Cross-platform compatibility (macOS, Linux, Windows via WSL)

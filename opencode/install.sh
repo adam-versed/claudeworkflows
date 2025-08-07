@@ -1,42 +1,41 @@
 #!/bin/bash
-# ai assisted workflows Installation Script
-# Installs the complete workflow system with commands, scripts, and dependencies
+# AI Assisted Workflows Installation Script
+# Installs the complete workflow system with agents, scripts, and dependencies
 
 set -euo pipefail
 
 # Script configuration
 SCRIPT_VERSION="1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="/tmp/claude-workflows-install.log"
+LOG_FILE="/tmp/opencode-workflows-install.log"
 
 # Usage and help
 show_usage() {
     cat << 'EOF'
-Claude Code Workflows Installer
+AI Assisted Workflows Installer
 
 USAGE:
     ./install.sh [TARGET_PATH] [OPTIONS]
 
 ARGUMENTS:
-    TARGET_PATH     Directory where .claude/ will be created
+    TARGET_PATH     Directory where .opencode/ will be created
                    Examples:
-                     ~/                    (User global: ~/.claude/)
-                     ./myproject           (Project local: ./myproject/.claude/)
-                     /path/to/project      (Custom path: /path/to/project/.claude/)
+                     ~                     (User global: ~/.config/opencode/)
+                     ./myproject           (Project local: ./myproject/.opencode/)
+                     /path/to/project      (Custom path: /path/to/project/.opencode/)
                    Default: current directory
 
 OPTIONS:
     -h, --help      Show this help message
     -v, --verbose   Enable verbose output
     -n, --dry-run   Show what would be done without making changes
-    --skip-mcp      Skip MCP tools installation
     --skip-python   Skip Python dependencies installation
 
 EXAMPLES:
-    # Install in current project (creates ./.claude/)
+    # Install in current project (creates ./.opencode/)
     ./install.sh
 
-    # Install globally for user (creates ~/.claude/)
+    # Install globally for user (creates ~/.config/opencode/)
     ./install.sh ~
 
     # Install in specific project
@@ -45,13 +44,8 @@ EXAMPLES:
     # Dry run to see what would happen
     ./install.sh --dry-run
 
-    # Install without MCP tools
-    ./install.sh --skip-mcp
-
 REQUIREMENTS:
     - Python 3.7+
-    - Node.js (for MCP tools)
-    - Claude CLI (for MCP tools)
     - Internet connection for dependencies
 
 EOF
@@ -60,7 +54,6 @@ EOF
 # Global variables
 VERBOSE=false
 DRY_RUN=false
-SKIP_MCP=false
 SKIP_PYTHON=false
 
 # Parse command line arguments
@@ -80,10 +73,6 @@ parse_args() {
                 ;;
             -n|--dry-run)
                 DRY_RUN=true
-                shift
-                ;;
-            --skip-mcp)
-                SKIP_MCP=true
                 shift
                 ;;
             --skip-python)
@@ -176,44 +165,6 @@ check_python() {
     fi
 }
 
-check_node() {
-    if [[ "$SKIP_MCP" == "true" ]]; then
-        log_verbose "Skipping Node.js check (MCP installation disabled)"
-        return 0
-    fi
-
-    log_verbose "Checking Node.js installation..."
-
-    if ! command -v node &> /dev/null; then
-        log_error "Node.js is required for MCP tools but not installed"
-        echo "Install Node.js from https://nodejs.org or use --skip-mcp to skip MCP tools"
-        exit 1
-    fi
-
-    local node_version
-    node_version=$(node --version)
-    log_verbose "Found Node.js $node_version"
-}
-
-check_claude_cli() {
-    if [[ "$SKIP_MCP" == "true" ]]; then
-        log_verbose "Skipping Claude CLI check (MCP installation disabled)"
-        return 0
-    fi
-
-    log_verbose "Checking Claude CLI installation..."
-
-    if ! command -v claude &> /dev/null; then
-        log_error "Claude CLI is required for MCP tools but not installed"
-        echo "Install Claude CLI from https://claude.ai/code or use --skip-mcp to skip MCP tools"
-        exit 1
-    fi
-
-    local claude_version
-    claude_version=$(claude --version 2>/dev/null || echo "unknown")
-    log_verbose "Found Claude CLI $claude_version"
-}
-
 # Directory setup with custom paths
 setup_install_dir() {
     log_verbose "Setting up installation directory..."
@@ -238,16 +189,19 @@ setup_install_dir() {
         fi
     fi
 
-    # Set final installation path
-    # Check if TARGET_PATH already ends with .claude
-    if [[ "$TARGET_PATH" == */.claude ]]; then
-        # User already specified .claude in the path
+    # Set final installation path based on target
+    # Special handling for home directory to use ~/.config/opencode
+    if [[ "$TARGET_PATH" == "$HOME" ]]; then
+        INSTALL_DIR="$HOME/.config/opencode"
+        log_verbose "Home directory specified, using ~/.config/opencode"
+    elif [[ "$TARGET_PATH" == */.opencode ]] || [[ "$TARGET_PATH" == */opencode ]]; then
+        # User already specified .opencode or opencode in the path (for global installs)
         INSTALL_DIR="$TARGET_PATH"
-        log_verbose "Target path already ends with .claude, using it directly"
+        log_verbose "Target path already ends with opencode directory, using it directly"
     else
-        # Append .claude to the path
-        INSTALL_DIR="$TARGET_PATH/.claude"
-        log_verbose "Appending .claude to target path"
+        # Append .opencode to the path for project installations
+        INSTALL_DIR="$TARGET_PATH/.opencode"
+        log_verbose "Appending .opencode to target path"
     fi
 
     log "Installation target: $INSTALL_DIR"
@@ -255,7 +209,7 @@ setup_install_dir() {
     # Handle existing installation
     if [[ -d "$INSTALL_DIR" ]]; then
         if [[ "$DRY_RUN" == "true" ]]; then
-            log "Would handle existing .claude directory at: $INSTALL_DIR"
+            log "Would handle existing .opencode directory at: $INSTALL_DIR"
             log "Would create automatic backup before proceeding"
             log "Would prompt user for fresh install/merge/workflows-only/cancel choice"
         else
@@ -265,13 +219,13 @@ setup_install_dir() {
             cp -r "$INSTALL_DIR" "$backup_dir"
 
             echo ""
-            echo "Found existing .claude directory at: $INSTALL_DIR"
+            echo "Found existing .opencode directory at: $INSTALL_DIR"
             echo "Automatic backup created at: $backup_dir"
             echo ""
             echo "Choose an option:"
             echo "  1) Fresh install (replace existing)"
             echo "  2) Merge with existing (preserve user customizations)"
-            echo "  3) Update workflows only (overwrite commands & scripts, preserve everything else)"
+            echo "  3) Update workflows only (overwrite agents & scripts, preserve everything else)"
             echo "  4) Cancel installation (backup remains)"
             echo ""
             read -p "Enter choice [1-4]: " choice
@@ -286,7 +240,7 @@ setup_install_dir() {
                     MERGE_MODE=true
                     ;;
                 3)
-                    log "Updating workflows only (commands & scripts)"
+                    log "Updating workflows only (agents & scripts)"
                     UPDATE_WORKFLOWS_ONLY=true
                     ;;
                 4)
@@ -311,25 +265,25 @@ setup_install_dir() {
     fi
 }
 
-# Handle claude.md merging or copying
-handle_claude_md() {
+# Handle agents.md file
+handle_agents_md() {
     local source_dir="$1"
-    local source_claude_md="$source_dir/claude.md"
-    local target_claude_md="$INSTALL_DIR/claude.md"
+    local source_agents_md="$source_dir/agents.md"
+    local target_agents_md="$INSTALL_DIR/agents.md"  # Note: agents.md goes to .opencode directory
 
-    # Check if our source claude.md exists
-    if [[ ! -f "$source_claude_md" ]]; then
-        log_verbose "No claude.md found in source, skipping"
+    # Check if our source agents.md exists
+    if [[ ! -f "$source_agents_md" ]]; then
+        log_verbose "No agents.md found in source, skipping"
         return 0
     fi
 
-    if [[ -f "$target_claude_md" ]]; then
-        # Target claude.md exists, append our content as a new section
-        log_verbose "Existing claude.md found, appending Claude Code Workflows section..."
+    if [[ -f "$target_agents_md" ]]; then
+        # Target agents.md exists, append our content as a new section
+        log_verbose "Existing agents.md found, appending AI Assisted Workflows section..."
 
         # Check if our section already exists
-        if grep -q "Build Approach Flags for claude enhanced workflows" "$target_claude_md" 2>/dev/null; then
-            log_verbose "Claude Code Workflows section already exists, skipping merge"
+        if grep -q "AI Assisted Workflow Agents" "$target_agents_md" 2>/dev/null; then
+            log_verbose "AI Assisted Workflows section already exists, skipping merge"
             return 0
         fi
 
@@ -338,15 +292,38 @@ handle_claude_md() {
             echo ""
             echo "---"
             echo ""
-            cat "$source_claude_md"
-        } >> "$target_claude_md"
+            cat "$source_agents_md"
+        } >> "$target_agents_md"
 
-        log "Appended Claude Code Workflows section to existing claude.md"
+        log "Appended AI Assisted Workflows section to existing agents.md"
     else
-        # No existing claude.md, copy ours
-        log_verbose "No existing claude.md found, copying ours..."
-        cp "$source_claude_md" "$target_claude_md"
-        log "Copied claude.md to installation directory"
+        # No existing agents.md, copy ours
+        log_verbose "No existing agents.md found, copying ours..."
+        cp "$source_agents_md" "$target_agents_md"
+        log "Copied agents.md to .opencode directory"
+    fi
+}
+
+# Handle opencode.json file
+handle_opencode_json() {
+    local source_dir="$1"
+    local source_json="$source_dir/opencode.json"
+    local target_json="$INSTALL_DIR/opencode.json"  # Note: opencode.json goes to .opencode directory
+
+    # Check if our source opencode.json exists
+    if [[ ! -f "$source_json" ]]; then
+        log_verbose "No opencode.json found in source, skipping"
+        return 0
+    fi
+
+    if [[ -f "$target_json" ]]; then
+        log_verbose "Existing opencode.json found, preserving user configuration"
+        # Don't overwrite existing opencode.json as it contains user-specific configuration
+    else
+        # No existing opencode.json, copy ours
+        log_verbose "No existing opencode.json found, copying default configuration..."
+        cp "$source_json" "$target_json"
+        log "Copied opencode.json to .opencode directory"
     fi
 }
 
@@ -359,9 +336,9 @@ copy_files() {
     # Verify source files exist
     # Check if we have the expected subdirectories
     local scripts_dir="$(dirname "$source_dir")/shared/lib/scripts"
-    if [[ ! -d "$source_dir/commands" ]] || [[ ! -d "$scripts_dir" ]]; then
+    if [[ ! -d "$source_dir/agent" ]] || [[ ! -d "$scripts_dir" ]]; then
         log_error "Source files not found"
-        log_error "Expected to find: $source_dir/commands/ and $scripts_dir"
+        log_error "Expected to find: $source_dir/agent/ and $scripts_dir"
         exit 1
     fi
 
@@ -379,70 +356,76 @@ copy_files() {
         # Track what's being preserved vs added
         local preserved_count=0
         local added_count=0
-        local custom_commands=()
+        local custom_agents=()
 
-        # Check for custom commands
-        if [[ -d "$INSTALL_DIR/commands" ]]; then
-            for cmd in "$INSTALL_DIR/commands"/*; do
-                if [[ -f "$cmd" ]]; then
-                    local cmd_name=$(basename "$cmd")
-                    if ! [[ -f "$source_dir/commands/$cmd_name" ]]; then
-                        custom_commands+=("$cmd_name")
+        # Check for custom agents
+        if [[ -d "$INSTALL_DIR/agent" ]]; then
+            for agent in "$INSTALL_DIR/agent"/*; do
+                if [[ -f "$agent" ]]; then
+                    local agent_name=$(basename "$agent")
+                    if ! [[ -f "$source_dir/agent/$agent_name" ]]; then
+                        custom_agents+=("$agent_name")
                     fi
                 fi
             done
         fi
 
-        # Copy with no-clobber, excluding docs directory
-        find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -exec cp -rn {} "$INSTALL_DIR/" \; 2>/dev/null || true
+        # Copy with no-clobber, excluding docs and install scripts
+        find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -not -name "opencode.json" -not -name "agents.md" -exec cp -rn {} "$INSTALL_DIR/" \; 2>/dev/null || true
 
-        # Also copy scripts from shared/lib if they don't exist
+        # Copy scripts from shared/lib to root of INSTALL_DIR
         local scripts_source="$(dirname "$source_dir")/shared/lib/scripts"
         if [[ -d "$scripts_source" ]] && [[ ! -d "$INSTALL_DIR/scripts" ]]; then
             cp -r "$scripts_source" "$INSTALL_DIR/scripts"
         fi
 
-        # Report custom commands preserved
-        if [[ ${#custom_commands[@]} -gt 0 ]]; then
-            echo "  Preserved custom commands:"
-            for cmd in "${custom_commands[@]}"; do
-                echo "    - $cmd"
+        # Copy formatter from shared/config to root of INSTALL_DIR
+        local formatter_source="$(dirname "$source_dir")/shared/config/formatter"
+        if [[ -d "$formatter_source" ]] && [[ ! -d "$INSTALL_DIR/formatter" ]]; then
+            cp -r "$formatter_source" "$INSTALL_DIR/formatter"
+        fi
+
+        # Report custom agents preserved
+        if [[ ${#custom_agents[@]} -gt 0 ]]; then
+            echo "  Preserved custom agents:"
+            for agent in "${custom_agents[@]}"; do
+                echo "    - $agent"
             done
         fi
 
         echo "  Merge complete. Existing files preserved, new files added."
     elif [[ "${UPDATE_WORKFLOWS_ONLY:-false}" == "true" ]]; then
-        # Update workflows only: update built-in commands, scripts, agents, templates, and rules, preserve custom commands and everything else
-        log "Updating workflows only: built-in commands, scripts, agents, templates, and rules directories..."
+        # Update workflows only: update built-in agents, scripts, modes, instructions, preserve custom agents
+        log "Updating workflows only: built-in agents, scripts, modes, and instructions..."
 
-        # Update built-in commands while preserving custom commands
-        if [[ -d "$source_dir/commands" ]]; then
-            log "  Updating commands directory (preserving custom commands)..."
-            local custom_commands=()
+        # Update built-in agents while preserving custom agents
+        if [[ -d "$source_dir/agent" ]]; then
+            log "  Updating agent directory (preserving custom agents)..."
+            local custom_agents=()
 
-            # Identify existing custom commands
-            if [[ -d "$INSTALL_DIR/commands" ]]; then
-                for cmd in "$INSTALL_DIR/commands"/*; do
-                    if [[ -f "$cmd" ]]; then
-                        local cmd_name=$(basename "$cmd")
-                        if ! [[ -f "$source_dir/commands/$cmd_name" ]]; then
-                            custom_commands+=("$cmd_name")
+            # Identify existing custom agents
+            if [[ -d "$INSTALL_DIR/agent" ]]; then
+                for agent in "$INSTALL_DIR/agent"/*; do
+                    if [[ -f "$agent" ]]; then
+                        local agent_name=$(basename "$agent")
+                        if ! [[ -f "$source_dir/agent/$agent_name" ]]; then
+                            custom_agents+=("$agent_name")
                         fi
                     fi
                 done
             fi
 
-            # Create commands directory if it doesn't exist
-            mkdir -p "$INSTALL_DIR/commands"
+            # Create agent directory if it doesn't exist
+            mkdir -p "$INSTALL_DIR/agent"
 
-            # Copy/overwrite built-in commands (this preserves any custom commands not in source)
-            cp "$source_dir/commands"/* "$INSTALL_DIR/commands/"
+            # Copy/overwrite built-in agents (this preserves any custom agents not in source)
+            cp "$source_dir/agent"/* "$INSTALL_DIR/agent/"
 
-            # Report preserved custom commands
-            if [[ ${#custom_commands[@]} -gt 0 ]]; then
-                echo "    Preserved custom commands:"
-                for cmd in "${custom_commands[@]}"; do
-                    echo "      - $cmd"
+            # Report preserved custom agents
+            if [[ ${#custom_agents[@]} -gt 0 ]]; then
+                echo "    Preserved custom agents:"
+                for agent in "${custom_agents[@]}"; do
+                    echo "      - $agent"
                 done
             fi
         fi
@@ -491,50 +474,49 @@ copy_files() {
             fi
         fi
 
-        # Update agents directory
-        if [[ -d "$source_dir/agents" ]]; then
-            log "  Updating agents directory..."
-            rm -rf "$INSTALL_DIR/agents"
-            cp -r "$source_dir/agents" "$INSTALL_DIR/"
+        # Update modes directory
+        if [[ -d "$source_dir/mode" ]]; then
+            log "  Updating mode directory..."
+            rm -rf "$INSTALL_DIR/mode"
+            cp -r "$source_dir/mode" "$INSTALL_DIR/"
         fi
 
-        # Update templates directory
-        if [[ -d "$source_dir/templates" ]]; then
-            log "  Updating templates directory..."
-            rm -rf "$INSTALL_DIR/templates"
-            cp -r "$source_dir/templates" "$INSTALL_DIR/"
+        # Update instructions directory
+        if [[ -d "$source_dir/instructions" ]]; then
+            log "  Updating instructions directory..."
+            rm -rf "$INSTALL_DIR/instructions"
+            cp -r "$source_dir/instructions" "$INSTALL_DIR/"
         fi
 
-        # Update rules directory
-        if [[ -d "$source_dir/rules" ]]; then
-            log "  Updating rules directory..."
-            rm -rf "$INSTALL_DIR/rules"
-            cp -r "$source_dir/rules" "$INSTALL_DIR/"
+        # Update formatter directory
+        local formatter_source="$(dirname "$source_dir")/shared/config/formatter"
+        if [[ -d "$formatter_source" ]]; then
+            log "  Updating formatter directory..."
+            rm -rf "$INSTALL_DIR/formatter"
+            cp -r "$formatter_source" "$INSTALL_DIR/formatter"
         fi
 
-        echo "  Workflow update complete. Built-in commands, scripts, agents, templates, and rules updated, custom commands and other files preserved."
+        echo "  Workflow update complete. Built-in agents, scripts, modes, instructions, and formatter updated, custom agents and other files preserved."
     else
-        # Fresh install: copy everything except docs and install scripts
-        find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -exec cp -r {} "$INSTALL_DIR/" \;
+        # Fresh install: copy everything except docs, install scripts, opencode.json, and agents.md
+        find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -not -name "opencode.json" -not -name "agents.md" -exec cp -r {} "$INSTALL_DIR/" \;
 
-        # Copy scripts from shared/lib
+        # Copy scripts from shared/lib to root of INSTALL_DIR
         local scripts_source="$(dirname "$source_dir")/shared/lib/scripts"
         if [[ -d "$scripts_source" ]]; then
             cp -r "$scripts_source" "$INSTALL_DIR/scripts"
         fi
+
+        # Copy formatter from shared/config to root of INSTALL_DIR
+        local formatter_source="$(dirname "$source_dir")/shared/config/formatter"
+        if [[ -d "$formatter_source" ]]; then
+            cp -r "$formatter_source" "$INSTALL_DIR/formatter"
+        fi
     fi
 
-    # Copy CLAUDE.md if it exists in root, otherwise copy claude.md as CLAUDE.md
-    if [[ -f "$source_dir/CLAUDE.md" ]]; then
-        log_verbose "Copying CLAUDE.md..."
-        cp "$source_dir/CLAUDE.md" "$INSTALL_DIR/"
-    elif [[ -f "$source_dir/claude.md" ]]; then
-        log_verbose "Copying claude.md as CLAUDE.md..."
-        cp "$source_dir/claude.md" "$INSTALL_DIR/CLAUDE.md"
-    fi
-
-    # Handle claude.md merging or copying
-    handle_claude_md "$source_dir"
+    # Handle agents.md and opencode.json separately (they go to TARGET_PATH root)
+    handle_agents_md "$source_dir"
+    handle_opencode_json "$source_dir"
 
     # Set proper permissions
     find "$INSTALL_DIR" -name "*.py" -exec chmod +x {} \;
@@ -557,7 +539,7 @@ create_installation_log() {
 
     # Create log file with header
     cat > "$log_file" << EOF
-# Claude Code Workflows Installation Log
+# AI Assisted Workflows Installation Log
 # DO NOT DELETE - Used by uninstall script to determine safe removal
 # Generated on: $(date)
 # Installation directory: $INSTALL_DIR
@@ -579,29 +561,10 @@ EOF
         done < "$requirements_file"
     fi
 
-    # Check which MCP servers were already installed
-    cat >> "$log_file" << EOF
-
-[PRE_EXISTING_MCP_SERVERS]
-EOF
-
-    if command -v claude &> /dev/null; then
-        # Check our MCP servers
-        local our_mcp_servers=("sequential-thinking" "grep")
-        for server in "${our_mcp_servers[@]}"; do
-            if claude mcp list 2>/dev/null | grep -q "^$server"; then
-                echo "$server" >> "$log_file"
-                log_verbose "Pre-existing MCP server: $server"
-            fi
-        done
-    fi
-
     # Initialize sections for newly installed items
     cat >> "$log_file" << EOF
 
 [NEWLY_INSTALLED_PYTHON_PACKAGES]
-
-[NEWLY_INSTALLED_MCP_SERVERS]
 EOF
 
     log_verbose "Installation log created: installation-log.txt"
@@ -625,13 +588,6 @@ update_installation_log() {
     # Add item to appropriate section
     if [[ "$item_type" == "python" ]]; then
         echo "$item_name" >> "$log_file"
-    elif [[ "$item_type" == "mcp" ]]; then
-        # Find the line number of the section and insert after it
-        local line_num=$(grep -n "^\[NEWLY_INSTALLED_MCP_SERVERS\]" "$log_file" | cut -d: -f1)
-        if [[ -n "$line_num" ]]; then
-            sed -i '' "${line_num}a\\
-$item_name" "$log_file"
-        fi
     fi
 
     log_verbose "Added to installation log: $item_type - $item_name"
@@ -701,80 +657,6 @@ install_python_deps() {
     fi
 }
 
-# MCP tools installation
-install_mcp_tools() {
-    if [[ "$SKIP_MCP" == "true" ]]; then
-        log "Skipping MCP tools installation"
-        return 0
-    fi
-
-    log "Installing MCP tools..."
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log "Would install MCP tools: sequential-thinking, grep"
-        return 0
-    fi
-
-    local mcp_failed=false
-
-    # Install sequential-thinking
-    log_verbose "Installing sequential-thinking MCP tool..."
-    # First check if already installed (with a small delay to ensure claude mcp list is ready)
-    sleep 1
-    if claude mcp list 2>&1 | grep -q "^sequential-thinking:"; then
-        log_verbose "sequential-thinking already installed, skipping"
-        update_installation_log "mcp" "sequential-thinking"
-    else
-        # Try to install, capturing the actual error
-        local install_output
-        install_output=$(claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking 2>&1)
-        local install_status=$?
-
-        if [[ $install_status -eq 0 ]]; then
-            log_verbose "sequential-thinking installed successfully"
-            update_installation_log "mcp" "sequential-thinking"
-        elif echo "$install_output" | grep -q "already exists"; then
-            log_verbose "sequential-thinking already exists (detected during install), marking as successful"
-            update_installation_log "mcp" "sequential-thinking"
-        else
-            log_error "Failed to install sequential-thinking MCP tool: $install_output"
-            mcp_failed=true
-        fi
-    fi
-
-    # Install grep
-    log_verbose "Installing grep MCP tool..."
-    # Check if already installed
-    if claude mcp list 2>&1 | grep -q "^grep:"; then
-        log_verbose "grep already installed, skipping"
-        update_installation_log "mcp" "grep"
-    else
-        # Try to install, capturing the actual error
-        local install_output
-        install_output=$(claude mcp add --transport http grep https://mcp.grep.app 2>&1)
-        local install_status=$?
-
-        if [[ $install_status -eq 0 ]]; then
-            log_verbose "grep installed successfully"
-            update_installation_log "mcp" "grep"
-        elif echo "$install_output" | grep -q "already exists"; then
-            log_verbose "grep already exists (detected during install), marking as successful"
-            update_installation_log "mcp" "grep"
-        else
-            log_error "Failed to install grep MCP tool: $install_output"
-            mcp_failed=true
-        fi
-    fi
-
-    if [[ "$mcp_failed" == "true" ]]; then
-        log "Some MCP tools failed to install. You can install them manually later using:"
-        echo "  claude mcp add sequential-thinking -s user -- npx -y @modelcontextprotocol/server-sequential-thinking"
-        echo "  claude mcp add --transport http grep https://mcp.grep.app"
-    else
-        log "MCP tools installed successfully"
-    fi
-}
-
 # Installation verification
 verify_installation() {
     log "Verifying installation..."
@@ -800,19 +682,9 @@ verify_installation() {
         fi
     fi
 
-    # Test MCP tools
-    if [[ "$DRY_RUN" != "true" ]] && [[ "$SKIP_MCP" != "true" ]]; then
-        log_verbose "Testing MCP tools..."
-        if claude mcp list 2>/dev/null | grep -q "sequential-thinking"; then
-            log_verbose "MCP tools verification passed"
-        else
-            log "Warning: MCP tools verification failed (this is non-critical)"
-        fi
-    fi
-
     # Test file structure
     if [[ "$DRY_RUN" != "true" ]]; then
-        local required_dirs=("commands" "scripts" "rules" "templates")
+        local required_dirs=("agent" "scripts" "mode" "instructions")
         for dir in "${required_dirs[@]}"; do
             if [[ ! -d "$INSTALL_DIR/$dir" ]]; then
                 log_error "Required directory missing: $INSTALL_DIR/$dir"
@@ -820,27 +692,26 @@ verify_installation() {
             fi
         done
 
-
-        # Verify custom commands preservation if in merge mode
+        # Verify custom agents preservation if in merge mode
         if [[ "${MERGE_MODE:-false}" == "true" ]]; then
-            log_verbose "Verifying custom commands preservation..."
-            local custom_commands_found=0
+            log_verbose "Verifying custom agents preservation..."
+            local custom_agents_found=0
 
-            if [[ -d "$INSTALL_DIR/commands" ]]; then
-                for cmd in "$INSTALL_DIR/commands"/*; do
-                    if [[ -f "$cmd" ]]; then
-                        local cmd_name=$(basename "$cmd")
-                        # Check if this is a custom command (not in source)
-                        if ! [[ -f "$SCRIPT_DIR/commands/$cmd_name" ]]; then
-                            log_verbose "  Custom command preserved: $cmd_name"
-                            ((custom_commands_found++))
+            if [[ -d "$INSTALL_DIR/agent" ]]; then
+                for agent in "$INSTALL_DIR/agent"/*; do
+                    if [[ -f "$agent" ]]; then
+                        local agent_name=$(basename "$agent")
+                        # Check if this is a custom agent (not in source)
+                        if ! [[ -f "$SCRIPT_DIR/agent/$agent_name" ]]; then
+                            log_verbose "  Custom agent preserved: $agent_name"
+                            ((custom_agents_found++))
                         fi
                     fi
                 done
             fi
 
-            if [[ $custom_commands_found -gt 0 ]]; then
-                log "Verified: $custom_commands_found custom command(s) preserved"
+            if [[ $custom_agents_found -gt 0 ]]; then
+                log "Verified: $custom_agents_found custom agent(s) preserved"
             fi
         fi
     fi
@@ -851,32 +722,27 @@ verify_installation() {
 # Display post-installation information
 show_completion() {
     echo ""
-    echo "🎉 Claude Code Workflows installation completed successfully!"
+    echo "🎉 AI Assisted Workflows installation completed successfully!"
     echo ""
     echo "Installation location: $INSTALL_DIR"
     echo ""
-    echo "Available commands (12 total):"
+    echo "Available agents (14+ agents):"
     echo "  Analysis: analyze-security, analyze-architecture, analyze-performance, etc."
     echo "  Planning: plan-solution, plan-ux-prd, plan-refactor"
-    echo "  Fixing:  fix-bug, fix-performance, fix-test"
-    echo "  Build Flags: --prototype, --tdd (via claude.md)"
+    echo "  Utilities: get-primer, create-session-notes, setup-dev-monitoring"
+    echo "  Project: create-project"
     echo ""
-    echo "Usage examples:"
-    echo "  /analyze-security   (run security analysis)"
-    echo "  /plan-solution     (solve technical challenges)"
-    echo "  /fix-bug --tdd     (test-driven bug fixing)"
+    echo "Configuration files:"
+    echo "  agents.md: $INSTALL_DIR/agents.md"
+    echo "  opencode.json: $INSTALL_DIR/opencode.json"
     echo ""
-
-    if [[ "$SKIP_MCP" != "true" ]]; then
-        echo "MCP Tools available:"
-        echo "  --seq (sequential thinking for complex analysis)"
-        echo "  --gitgrep (grep for GitHub repository search)"
-        echo ""
-    fi
-
+    echo "Usage:"
+    echo "  Agents are available through the Task tool in OpenCode"
+    echo "  Configure agents in opencode.json or via markdown files"
+    echo ""
     echo "For more information:"
-    echo "  View commands: ls $INSTALL_DIR/commands/"
-    echo "  Documentation: cat $INSTALL_DIR/CLAUDE.md"
+    echo "  View agents: ls $INSTALL_DIR/agent/"
+    echo "  View modes: ls $INSTALL_DIR/mode/"
     echo "  Log file: $LOG_FILE"
     echo ""
 }
@@ -892,8 +758,7 @@ cleanup() {
         echo "Common solutions:"
         echo "  1. Ensure Python 3.7+ is installed"
         echo "  2. Check internet connectivity"
-        echo "  3. Run with --skip-mcp if MCP tools are causing issues"
-        echo "  4. Run with --skip-python if Python deps are causing issues"
+        echo "  3. Run with --skip-python if Python deps are causing issues"
         echo ""
     fi
 }
@@ -906,12 +771,12 @@ main() {
     trap cleanup EXIT
 
     # Initialize log file
-    echo "Claude Code Workflows Installation Log" > "$LOG_FILE"
+    echo "AI Assisted Workflows Installation Log" > "$LOG_FILE"
     echo "Started: $(date)" >> "$LOG_FILE"
     echo "Arguments: $*" >> "$LOG_FILE"
     echo "" >> "$LOG_FILE"
 
-    log "Starting Claude Code Workflows installation (v$SCRIPT_VERSION)"
+    log "Starting AI Assisted Workflows installation (v$SCRIPT_VERSION)"
 
     if [[ "$DRY_RUN" == "true" ]]; then
         log "DRY RUN MODE - no changes will be made"
@@ -920,13 +785,10 @@ main() {
     # Run installation steps
     detect_platform
     check_python
-    check_node
-    check_claude_cli
     setup_install_dir
     copy_files
     create_installation_log
     install_python_deps
-    install_mcp_tools
     verify_installation
 
     if [[ "$DRY_RUN" != "true" ]]; then
