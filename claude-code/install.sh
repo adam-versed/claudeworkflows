@@ -357,10 +357,11 @@ copy_files() {
     local source_dir="$SCRIPT_DIR"
 
     # Verify source files exist
-    # Check if we have the expected subdirectories in the current directory
-    if [[ ! -d "$source_dir/commands" ]] || [[ ! -d "$source_dir/scripts" ]]; then
-        log_error "Source files not found in: $source_dir"
-        log_error "Expected to find commands/ and scripts/ directories"
+    # Check if we have the expected subdirectories
+    local scripts_dir="$(dirname "$source_dir")/shared/lib/scripts"
+    if [[ ! -d "$source_dir/commands" ]] || [[ ! -d "$scripts_dir" ]]; then
+        log_error "Source files not found"
+        log_error "Expected to find: $source_dir/commands/ and $scripts_dir"
         exit 1
     fi
 
@@ -394,6 +395,12 @@ copy_files() {
 
         # Copy with no-clobber, excluding docs directory
         find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -exec cp -rn {} "$INSTALL_DIR/" \; 2>/dev/null || true
+
+        # Also copy scripts from shared/lib if they don't exist
+        local scripts_source="$(dirname "$source_dir")/shared/lib/scripts"
+        if [[ -d "$scripts_source" ]] && [[ ! -d "$INSTALL_DIR/scripts" ]]; then
+            cp -r "$scripts_source" "$INSTALL_DIR/scripts"
+        fi
 
         # Report custom commands preserved
         if [[ ${#custom_commands[@]} -gt 0 ]]; then
@@ -441,7 +448,8 @@ copy_files() {
         fi
 
         # Update scripts directory (preserve custom scripts)
-        if [[ -d "$source_dir/scripts" ]]; then
+        local scripts_source="$(dirname "$source_dir")/shared/lib/scripts"
+        if [[ -d "$scripts_source" ]]; then
             log "  Updating scripts directory (preserving custom scripts)..."
 
             # Backup custom scripts if they exist
@@ -450,7 +458,7 @@ copy_files() {
                 # Find custom scripts that aren't in our source
                 while IFS= read -r -d '' script_file; do
                     local rel_path="${script_file#$INSTALL_DIR/scripts/}"
-                    if [[ ! -f "$source_dir/scripts/$rel_path" ]]; then
+                    if [[ ! -f "$scripts_source/$rel_path" ]]; then
                         custom_scripts+=("$rel_path")
                     fi
                 done < <(find "$INSTALL_DIR/scripts" -type f -print0 2>/dev/null)
@@ -468,7 +476,7 @@ copy_files() {
 
             # Remove and recreate scripts directory
             rm -rf "$INSTALL_DIR/scripts"
-            cp -r "$source_dir/scripts" "$INSTALL_DIR/"
+            cp -r "$scripts_source" "$INSTALL_DIR/scripts"
 
             # Restore custom scripts
             if [[ ${#custom_scripts[@]} -gt 0 ]]; then
@@ -508,6 +516,12 @@ copy_files() {
     else
         # Fresh install: copy everything except docs and install scripts
         find "$source_dir" -mindepth 1 -maxdepth 1 -not -name "docs" -not -name "install.sh" -not -name "install.ps1" -exec cp -r {} "$INSTALL_DIR/" \;
+
+        # Copy scripts from shared/lib
+        local scripts_source="$(dirname "$source_dir")/shared/lib/scripts"
+        if [[ -d "$scripts_source" ]]; then
+            cp -r "$scripts_source" "$INSTALL_DIR/scripts"
+        fi
     fi
 
     # Copy CLAUDE.md if it exists in root, otherwise copy claude.md as CLAUDE.md

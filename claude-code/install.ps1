@@ -440,6 +440,14 @@ function Copy-WorkflowFiles {
             }
         }
 
+        # Copy scripts from shared/lib/scripts
+        $sharedScriptsDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared\lib\scripts"
+        if (Test-Path $sharedScriptsDir) {
+            $targetScriptsDir = Join-Path $ClaudePath "scripts"
+            Write-Log "Copying scripts from shared/lib/scripts to $targetScriptsDir"
+            Copy-Item -Path $sharedScriptsDir -Destination $targetScriptsDir -Recurse -Force
+        }
+
         # Copy CLAUDE.md if it exists in root, otherwise copy claude.md as CLAUDE.md
         $rootClaudeFile = Join-Path $SCRIPT_DIR "CLAUDE.md"
         $nestedClaudeFile = Join-Path $SCRIPT_DIR "claude.md"
